@@ -17,7 +17,7 @@
         <tag>HEAD</tag>
     </scm>
     <properties>
-        <globalid-common.version>1.0.18-SNAPSHOT</globalid-common.version>
+        <globalid-common.version>1.0.18</globalid-common.version>
     </properties>
     <dependencies>
 

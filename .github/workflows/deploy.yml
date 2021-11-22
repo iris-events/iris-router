@@ -1,0 +1,27 @@
+name: Deploy
+on:
+  workflow_run:
+    workflows: [ "Build" ]
+    types: [ completed ]
+  workflow_dispatch:
+
+jobs:
+  docker:
+    name: Docker image
+    uses: globalid/core-auth/.github/workflows/docker-image.yml@master
+    with:
+      customDoccustomDockerFile: src/main/docker/Dockerfile.jvm
+    secrets:
+      AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+      NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+  deploy:
+    needs:
+      - docker
+    uses: globalid/core-auth/.github/workflows/k8s-legacy.yml@master
+    with:
+      env-name: "dev"
+      namespace: "core"
+    secrets:
+      KUBECONFIG: ${{ secrets.KUBECONFIG }}
+
