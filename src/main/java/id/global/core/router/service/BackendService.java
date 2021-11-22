@@ -69,9 +69,8 @@ public class BackendService {
             log.info("publishing message to {} - {}", eventType, routingKey);
             //String serviceName = messageValidationService.getSingleFrontendQueueRoute(event, version);
             //if (serviceName != null) {
-            // todo create front-message queue on services
-            //channel.basicPublish("front-message", routingKey, message.properties(), message.body());
-            channel.basicPublish(eventType, routingKey, message.properties(), message.body());
+            channel.basicPublish("frontend", routingKey, message.properties(), message.body());
+            //channel.basicPublish(eventType, routingKey, message.properties(), message.body());
             /*
              * } else {
              * channel.basicPublish(event, routingKey, message.properties(), message.body());

@@ -18,5 +18,5 @@ test:
     RABBIT_PASSWORD: user
   services:
     - name: rabbitmq:3.8.19-alpine
-      alias: rabbitmq-quarkus-eda-it
+      alias: rabbitmq
   stage: test
