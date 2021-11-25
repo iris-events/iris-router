@@ -1,11 +1,16 @@
 package id.global.core.router.ws;
 
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import id.global.core.router.model.RequestWrapper;
+import id.global.core.router.model.UserSession;
+import id.global.core.router.service.BackendService;
+import id.global.core.router.service.WebsocketRegistry;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
+import javax.websocket.CloseReason;
 import javax.websocket.EndpointConfig;
 import javax.websocket.OnClose;
 import javax.websocket.OnError;
@@ -13,16 +18,9 @@ import javax.websocket.OnMessage;
 import javax.websocket.OnOpen;
 import javax.websocket.Session;
 import javax.websocket.server.ServerEndpoint;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import com.fasterxml.jackson.databind.ObjectMapper;
-
-import id.global.core.router.model.RequestWrapper;
-import id.global.core.router.model.UserSession;
-import id.global.core.router.service.BackendService;
-import id.global.core.router.service.WebsocketRegistry;
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
 
 @ServerEndpoint(value = "/v0/websocket", configurator = WsContainerConfigurator.class)
 @ApplicationScoped
@@ -46,7 +44,7 @@ public class SocketV1 {
     }
 
     @OnClose
-    public void onClose(Session session) {
+    public void onClose(Session session, CloseReason reason) {
         var userSession = websocketRegistry.removeSocket(session.getId());
         log.info("closing user session: {}", userSession);
         if (userSession != null) {
@@ -61,20 +59,24 @@ public class SocketV1 {
         //sessions.remove(username);
         //broadcast("User " + username + " left on error: " + throwable);
         log.info("on error happened", throwable);
-        onClose(session);
+        onClose(session, new CloseReason(CloseReason.CloseCodes.CLOSED_ABNORMALLY, "error "+throwable.getMessage() ));
     }
 
     @OnMessage
     public void onMessage(Session session, String message) {
         try {
             log.info("raw: {}", message);
+            if (message.isEmpty()){
+                log.info("noting to do");
+                return;
+            }
             RequestWrapper msg = objectMapper.readerFor(RequestWrapper.class).readValue(message);
             log.info("message: {}", msg);
             var userSession = websocketRegistry.getSession(session.getId());
             sendToBackend(userSession, msg);
-
         } catch (Exception e) {
             log.error("Could not handle message", e);
+            session.getAsyncRemote().sendText("Could not read message" + e.getMessage());
         }
 
     }
@@ -84,16 +86,4 @@ public class SocketV1 {
         var message = session.createBackendRequest(requestWrapper, traceId);
         backendService.sendToBackend(traceId, requestWrapper.event(), "1.0", message);
     }
-
-    /*
-     * private void broadcast(String message) {
-     * sessions.values().forEach(s -> {
-     * s.getAsyncRemote().sendObject(message, result -> {
-     * if (result.getException() != null) {
-     * System.out.println("Unable to send message: " + result.getException());
-     * }
-     * });
-     * });
-     * }
-     */
 }
