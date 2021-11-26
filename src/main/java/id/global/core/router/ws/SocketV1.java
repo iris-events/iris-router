@@ -1,12 +1,8 @@
 package id.global.core.router.ws;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import id.global.core.router.model.RequestWrapper;
-import id.global.core.router.model.UserSession;
-import id.global.core.router.service.BackendService;
-import id.global.core.router.service.WebsocketRegistry;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
@@ -18,9 +14,16 @@ import javax.websocket.OnMessage;
 import javax.websocket.OnOpen;
 import javax.websocket.Session;
 import javax.websocket.server.ServerEndpoint;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
+
+import id.global.core.router.model.RequestWrapper;
+import id.global.core.router.model.UserSession;
+import id.global.core.router.service.BackendService;
+import id.global.core.router.service.WebsocketRegistry;
 
 @ServerEndpoint(value = "/v0/websocket", configurator = WsContainerConfigurator.class)
 @ApplicationScoped
@@ -59,14 +62,14 @@ public class SocketV1 {
         //sessions.remove(username);
         //broadcast("User " + username + " left on error: " + throwable);
         log.info("on error happened", throwable);
-        onClose(session, new CloseReason(CloseReason.CloseCodes.CLOSED_ABNORMALLY, "error "+throwable.getMessage() ));
+        onClose(session, new CloseReason(CloseReason.CloseCodes.CLOSED_ABNORMALLY, "error " + throwable.getMessage()));
     }
 
     @OnMessage
     public void onMessage(Session session, String message) {
         try {
             log.info("raw: {}", message);
-            if (message.isEmpty()){
+            if (message.isEmpty()) {
                 log.info("noting to do");
                 return;
             }

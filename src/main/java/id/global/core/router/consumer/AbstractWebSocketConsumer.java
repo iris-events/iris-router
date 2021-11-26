@@ -90,15 +90,20 @@ public abstract class AbstractWebSocketConsumer extends BaseConsumer {
 
     protected void findHandlerAndSend(ResponseMessageType responseMessageType, String correlationId, String userId,
             String sessionId, String eventType, String message) {
-        var handlers = getResponseHandlers(sessionId, userId, eventType);
+        var handlers = getResponseHandlers(responseMessageType, sessionId, userId, eventType);
         for (var handler : handlers) {
             handler.handle(responseMessageType, correlationId, userId, sessionId, eventType, message);
         }
     }
 
-    private List<ResponseHandler> getResponseHandlers(String sessionId, String userId, String dataType) {
+    private List<ResponseHandler> getResponseHandlers(ResponseMessageType responseMessageType, String sessionId, String userId,
+            String dataType) {
+
         List<ResponseHandler> handlers = new ArrayList<>();
-        if (sessionId != null) {
+        if (responseMessageType == ResponseMessageType.BROADCAST) {
+            handlers.add(websocketRegistry.getResponseHandler());
+        }
+        if (handlers.isEmpty() && sessionId != null) {
             if (websocketRegistry.getSession(sessionId) != null) {
                 handlers.add(websocketRegistry.getResponseHandler());
             }
@@ -132,7 +137,7 @@ public abstract class AbstractWebSocketConsumer extends BaseConsumer {
         final String router = getStringHeader(message.properties(), "router");
         /*
          * boolean valid = correlationId == null;
-         * 
+         *
          * if (!valid && !apiService.isRequestValid(correlationId) && ! websocketRegistry.isRequestValid(correlationId)) {
          * LOGGER.info("should be dropping msg: {}, event: {}", correlationId, event);
          * return;
@@ -164,7 +169,8 @@ public abstract class AbstractWebSocketConsumer extends BaseConsumer {
             requestRegistry.publishResponse(getSocketMessageType(), correlationId, clientTraceId, userId, sessionId, eventType,
                     messageBody);
         } else {
-            if (!"".equals(userId) && sessionId == null && correlationId != null) { //correlationId check is for subscription messages
+            if (!"".equals(userId) && sessionId == null
+                    && correlationId != null) { //correlationId check is for subscription messages
                 log.warn("Message without userId and no sessionId, microservice: {}, message: {}", currentServiceId,
                         trimMessage(messageBody));
                 return;
