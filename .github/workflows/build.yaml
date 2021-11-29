@@ -47,6 +47,7 @@ jobs:
           name: quarkus-app
           path: "target/quarkus-app/"
   docker:
+    if: github.ref == 'refs/heads/master'
     needs: build
     name: Build and release image
     runs-on: ubuntu-latest
