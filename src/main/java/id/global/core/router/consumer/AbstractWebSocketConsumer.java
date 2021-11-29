@@ -85,22 +85,14 @@ public abstract class AbstractWebSocketConsumer extends BaseConsumer {
 
     //non rpc message, handle on websocket
     protected void sendToSocket(String userId, String sessionId, String dataType, String correlationId, String message) {
-        findHandlerAndSend(getSocketMessageType(), correlationId, userId, sessionId, dataType, message);
+        final var handlers = getResponseHandlers(sessionId, userId, dataType);
+        final var responseMessageType = getSocketMessageType();
+        handlers.forEach(handler -> handler.handle(responseMessageType, correlationId, userId, sessionId, dataType, message));
     }
 
-    protected void findHandlerAndSend(ResponseMessageType responseMessageType, String correlationId, String userId,
-            String sessionId, String eventType, String message) {
-        var handlers = getResponseHandlers(responseMessageType, sessionId, userId, eventType);
-        for (var handler : handlers) {
-            handler.handle(responseMessageType, correlationId, userId, sessionId, eventType, message);
-        }
-    }
-
-    private List<ResponseHandler> getResponseHandlers(ResponseMessageType responseMessageType, String sessionId, String userId,
-            String dataType) {
-
+    private List<ResponseHandler> getResponseHandlers(String sessionId, String userId, String dataType) {
         List<ResponseHandler> handlers = new ArrayList<>();
-        if (responseMessageType == ResponseMessageType.BROADCAST) {
+        if (getSocketMessageType() == ResponseMessageType.BROADCAST) {
             handlers.add(websocketRegistry.getResponseHandler());
         }
         if (handlers.isEmpty() && sessionId != null) {
