@@ -1,5 +1,6 @@
 package id.global.core.router.model;
 
+import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 import java.util.regex.Pattern;
 
@@ -38,6 +39,10 @@ public record BackendRequest(String requestId, String dataType, Instant created,
             return requestBody.substring(0, 400) + "...";
         }
         return requestBody;
+    }
+
+    public static String sanitizeBody(byte[] body) {
+        return sanitizeBody(new String(body, StandardCharsets.UTF_8));
     }
 
     public static String sanitizeBody(String body) {

@@ -93,7 +93,12 @@ public abstract class BaseConsumer {
                     log.info("exchange: {}, queue: {}, routing key: {}, deliveryTag: {}", envelope.getExchange(), queueName,
                             envelope.getRoutingKey(), envelope.getDeliveryTag());
                     log.info("properties: {}", properties);
-                    AmpqMessage m = new AmpqMessage(body, properties);
+                    Object event = properties.getHeaders().get("eventType");
+                    if (event == null) {
+                        throw new RuntimeException("Required header 'eventType' missing on message");
+                    }
+
+                    AmpqMessage m = new AmpqMessage(body, properties, event.toString());
                     log.info("Received: consumerTag: {}, body: {}", consumerTag, new String(body, StandardCharsets.UTF_8));
                     try {
                         onMessage(m);

@@ -14,21 +14,16 @@ public abstract class DefaultResponseHandler implements ResponseHandler {
     protected abstract ObjectMapper getObjectMapper();
 
     @Override
-    public void handle(ResponseMessageType responseMessageType, String correlationId, String userId, String sessionId,
-            String eventType, String message) {
-        if (message == null) {
-            LOGGER.warn("Got message with null body for type: {}", eventType);
-            return;
-        }
+    public void handle(ResponseMessageType responseMessageType, AmpqMessage message) {
+        String eventType = message.eventType();
         if (!"exception".equals(eventType)) {
-            onSuccess(responseMessageType, correlationId, userId, sessionId, eventType, message);
+            onSuccess(responseMessageType, message);
         } else {
             LOGGER.warn("No exception handling yet");
         }
     }
 
-    protected abstract void onSuccess(ResponseMessageType responseMessageType, String correlationId, String userId,
-            String sessionId, String eventType, String message);
+    protected abstract void onSuccess(ResponseMessageType responseMessageType, AmpqMessage message);
 
     /*
      * protected abstract void onError(ResponseMessageType responseMessageType, String requestId, String userId, String

@@ -14,7 +14,6 @@ import javax.inject.Inject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.rabbitmq.client.AMQP;
 import com.rabbitmq.client.BuiltinExchangeType;
 
 import id.global.core.router.model.AmpqMessage;
@@ -84,17 +83,19 @@ public abstract class AbstractWebSocketConsumer extends BaseConsumer {
     }
 
     //non rpc message, handle on websocket
-    protected void sendToSocket(String userId, String sessionId, String dataType, String correlationId, String message) {
-        final var handlers = getResponseHandlers(sessionId, userId, dataType);
+    protected void sendToSocket(AmpqMessage message) {
+        final var handlers = getResponseHandlers(message);
         final var responseMessageType = getSocketMessageType();
-        handlers.forEach(handler -> handler.handle(responseMessageType, correlationId, userId, sessionId, dataType, message));
+        handlers.forEach(handler -> handler.handle(responseMessageType, message));
     }
 
-    private List<ResponseHandler> getResponseHandlers(String sessionId, String userId, String dataType) {
+    private List<ResponseHandler> getResponseHandlers(AmpqMessage message) {
         List<ResponseHandler> handlers = new ArrayList<>();
         if (getSocketMessageType() == ResponseMessageType.BROADCAST) {
             handlers.add(websocketRegistry.getResponseHandler());
         }
+        String userId = message.userId();
+        String sessionId = message.sessionId();
         if (handlers.isEmpty() && sessionId != null) {
             if (websocketRegistry.getSession(sessionId) != null) {
                 handlers.add(websocketRegistry.getResponseHandler());
@@ -107,26 +108,17 @@ public abstract class AbstractWebSocketConsumer extends BaseConsumer {
         }
         if (handlers.isEmpty()) {
             log.trace("Got message that we cannot find response handler for: sessionId: {}, userId: {}, event: {}",
-                    sessionId, userId, dataType);
+                    sessionId, userId, message.eventType());
             handlers.add(websocketRegistry.getResponseHandler());
         }
         return handlers;
-    }
-
-    private String getStringHeader(AMQP.BasicProperties props, String name) {
-        var r = props.getHeaders().get(name);
-        if (r != null) {
-            return r.toString();
-        }
-        return null;
     }
 
     @Override
     public void onMessage(AmpqMessage message) {
         log.info("got websocket message: {}", message);
 
-        var headers = message.properties().getHeaders();
-        final String router = getStringHeader(message.properties(), "router");
+        final String router = message.routerId();
         /*
          * boolean valid = correlationId == null;
          *
@@ -135,9 +127,8 @@ public abstract class AbstractWebSocketConsumer extends BaseConsumer {
          * return;
          * }
          */
+        final String correlationId = message.correlationId();
         final String messageBody = new String(message.body(), StandardCharsets.UTF_8);
-        //final String correlationId = message.properties().getCorrelationId();
-        final String correlationId = getStringHeader(message.properties(), "traceId");
         if (router != null) {
             if (!routerId.equals(router)) {
                 log.info("Message trace id '{}' does not belong to this server, message: {}", correlationId,
@@ -145,21 +136,17 @@ public abstract class AbstractWebSocketConsumer extends BaseConsumer {
                 return;
             }
         }
-
-        final String eventType = getStringHeader(message.properties(), "eventType");
-        final String traceId = getStringHeader(message.properties(), "traceId");
-        final String clientTraceId = (String) headers.get("clientTraceId");
-        final String userId = getStringHeader(message.properties(), "userId");
-        final String sessionId = getStringHeader(message.properties(), "sessionId");
-        final String currentServiceId = getStringHeader(message.properties(), "currentServiceId");
-        //final String ipAddress = (String) headers.get("ipAddress");
-
-        log.trace("event: {}, userId: {}, session: {}, source: {} body: {}", eventType, userId, sessionId, currentServiceId,
-                messageBody);
+        final String eventType = message.eventType();
+        final String userId = message.userId();
+        final String sessionId = message.sessionId();
+        final String currentServiceId = message.currentServiceId();
+        if (log.isTraceEnabled()) {
+            log.trace("event: {}, userId: {}, session: {}, source: {} body: {}", eventType, userId, sessionId, currentServiceId,
+                    messageBody);
+        }
 
         if (requestRegistry.isRequestValid(correlationId)) {
-            requestRegistry.publishResponse(getSocketMessageType(), correlationId, clientTraceId, userId, sessionId, eventType,
-                    messageBody);
+            requestRegistry.publishResponse(getSocketMessageType(), message);
         } else {
             if (!"".equals(userId) && sessionId == null
                     && correlationId != null) { //correlationId check is for subscription messages
@@ -167,7 +154,7 @@ public abstract class AbstractWebSocketConsumer extends BaseConsumer {
                         trimMessage(messageBody));
                 return;
             }
-            sendToSocket(userId, sessionId, eventType, correlationId, messageBody);
+            sendToSocket(message);
         }
 
     }

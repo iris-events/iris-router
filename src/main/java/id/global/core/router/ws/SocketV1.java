@@ -2,7 +2,6 @@ package id.global.core.router.ws;
 
 import java.util.List;
 import java.util.Map;
-import java.util.UUID;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
@@ -85,8 +84,8 @@ public class SocketV1 {
     }
 
     private void sendToBackend(UserSession session, RequestWrapper requestWrapper) {
-        String traceId = UUID.randomUUID().toString();
-        var message = session.createBackendRequest(requestWrapper, traceId);
-        backendService.sendToBackend(traceId, requestWrapper.event(), "1.0", message);
+        var message = session.createBackendRequest(requestWrapper);
+
+        backendService.sendToBackend(requestWrapper.event(), message);
     }
 }

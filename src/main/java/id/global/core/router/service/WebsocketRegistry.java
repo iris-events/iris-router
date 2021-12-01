@@ -101,17 +101,14 @@ public class WebsocketRegistry {
         return new UserSession(objectMapper, session, headers);
     }
 
-    public void registerRequest(String requestId, AmpqMessage message) {
-        if (requestId == null) {
-            return;
-        }
-        Map<String, Object> properties = message.properties().getHeaders();
-        String dataType = (String) properties.get("event");
+    public void registerRequest(AmpqMessage message) {
+
+        String dataType = message.eventType();
         if (NON_RPC_DATATYPES.contains(dataType)) {
             return;
         }
 
-        requestRegistry.registerNewRequest(requestId, message, responseHandler);
+        requestRegistry.registerNewRequest(message, responseHandler);
     }
 
     public boolean login(String sessionId, String token, String clientTraceId) {

@@ -60,23 +60,13 @@ public class BackendService {
         }
     }
 
-    public void sendToBackend(String traceId, String eventType, String version, AmpqMessage message) {
+    public void sendToBackend(String eventType, AmpqMessage message) {
         //final String routingKey = dataType + "." + version;
-        final String routingKey = eventType;
-        websocketRegistry.registerRequest(traceId, message);
+        websocketRegistry.registerRequest(message);
 
         try {
-            log.info("publishing message to {} - {}", eventType, routingKey);
-            //String serviceName = messageValidationService.getSingleFrontendQueueRoute(event, version);
-            //if (serviceName != null) {
-            channel.basicPublish("frontend", routingKey, message.properties(), message.body());
-            //channel.basicPublish(eventType, routingKey, message.properties(), message.body());
-            /*
-             * } else {
-             * channel.basicPublish(event, routingKey, message.properties(), message.body());
-             * }
-             */
-
+            log.info("publishing message to 'frontend' - {}", eventType);
+            channel.basicPublish("frontend", eventType, message.properties(), message.body());
         } catch (IOException e) {
 
             log.error("Could not send message", e);

@@ -4,13 +4,16 @@ import java.io.IOException;
 import java.io.StringWriter;
 import java.io.UncheckedIOException;
 import java.nio.ByteBuffer;
+import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.UUID;
 
 import javax.websocket.CloseReason;
 import javax.websocket.Session;
@@ -85,9 +88,9 @@ public class UserSession {
 
     //actions
 
-    public void sendMessage(String correlationId, String eventType, String messageBody) {
-        var message = convertResponse(messageBody, eventType, correlationId);
-        sendMessageRaw(message);
+    public void sendMessage(AmpqMessage message) {
+        var msg = convertResponse(message);
+        sendMessageRaw(msg);
     }
 
     public void sendMessageRaw(String stringMessage) {
@@ -180,8 +183,6 @@ public class UserSession {
     }
 
     private void setupDefaultHeaders(Map<String, List<String>> headers) {
-        this.defaultMessageHeaders = new HashMap<>();
-
         this.clientIp = headers.getOrDefault("X-Envoy-External-Address", List.of())
                 .stream()
                 .findAny()
@@ -212,44 +213,43 @@ public class UserSession {
             userAgent = String.join(", ", userAgentList);
         }
         this.userAgent = userAgent;
-
+        this.defaultMessageHeaders = new HashMap<>();
         defaultMessageHeaders.put("proxyIpAddress", proxyIp);
 
         defaultMessageHeaders.put("userAgent", userAgent);
         defaultMessageHeaders.put("sessionId", session.getId());
+        defaultMessageHeaders.put("userId", userId);
         if (clientIp != null) {
             defaultMessageHeaders.put("ipAddress", clientIp);
         }
         if (clientDeviceId != null) {
             defaultMessageHeaders.put("device", clientDeviceId);
         }
+        defaultMessageHeaders.put("router", AbstractWebSocketConsumer.routerId);
     }
 
-    public AmpqMessage createBackendRequest(RequestWrapper requestMessage, String traceId) {
+    public AmpqMessage createBackendRequest(RequestWrapper requestMessage) {
 
-        var dataType = requestMessage.event();
-        var version = "1.0";
+        var eventType = requestMessage.event();
 
         var headers = new HashMap<String, Object>();
         setUserHeaders(headers);
-        headers.put("event", dataType);
-        headers.put("router", AbstractWebSocketConsumer.routerId);
-        if (traceId != null) {
-            headers.put("traceId", traceId);
-        }
+        headers.put("eventType", eventType);
         headers.put("clientTraceId", requestMessage.clientTraceId());
         headers.put("X-Request-Via", "router/WebSocket");
         if (log.isTraceEnabled()) {
             var copy = new HashMap<>(headers);
-            copy.put("jwt", ".....");
+
             log.trace("[{}] backend payload: {},  headers: {}", getUserId(), requestMessage.payload(), copy);
         }
+        String correlationId = UUID.randomUUID().toString();
         final AMQP.BasicProperties messageProperties = new AMQP.BasicProperties()
                 .builder()
-                .correlationId(traceId)
+                .correlationId(correlationId)
+                .timestamp(new Date())
                 .headers(headers)
                 .build();
-        return new AmpqMessage(writeValueAsBytes(requestMessage.payload()), messageProperties);
+        return new AmpqMessage(writeValueAsBytes(requestMessage.payload()), messageProperties, eventType);
 
     }
 
@@ -278,19 +278,19 @@ public class UserSession {
         }
     }
 
-    private String convertResponse(String message, String eventType, String clientTraceId) {
+    private String convertResponse(AmpqMessage message) {
         try {
             StringWriter writer = new StringWriter();
             JsonGenerator jGenerator = objectMapper.getFactory()
                     .createGenerator(writer);
             jGenerator.writeStartObject();
-            jGenerator.writeStringField("event", eventType);
-            if (clientTraceId != null) {
-                jGenerator.writeStringField("clientTraceId", clientTraceId); //todo clientTraceId != correlationId
+            jGenerator.writeStringField("event", message.eventType());
+            if (message.clientTraceId() != null) {
+                jGenerator.writeStringField("clientTraceId", message.clientTraceId());
             }
-            if (message != null && !message.isBlank()) {
+            if (message.body() != null) {
                 jGenerator.writeFieldName("payload");
-                jGenerator.writeRawValue(message);
+                jGenerator.writeRawValue(new String(message.body(), StandardCharsets.UTF_8));
                 jGenerator.writeEndObject();
             }
 

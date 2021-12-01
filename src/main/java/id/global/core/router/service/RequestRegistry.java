@@ -28,7 +28,7 @@ public class RequestRegistry {
     private static final Duration requestExpirationTime = Duration.ofSeconds(30);
 
     private final ConcurrentHashMap<String, BackendRequest> requests = new ConcurrentHashMap<>();
-    private final int requestTimeLogThreshold = 200000; // 200ms
+    private final int requestTimeLogThreshold = 5; // 5ms
 
     public RequestRegistry() {
 
@@ -47,8 +47,8 @@ public class RequestRegistry {
         return requestId != null && requests.containsKey(requestId);
     }
 
-    public void publishResponse(ResponseMessageType messageType, String correlationId, String clientTraceId, String userId,
-            String sessionId, String dataType, String response) {
+    public void publishResponse(ResponseMessageType messageType, AmpqMessage message) {
+        String correlationId = message.correlationId();
         BackendRequest request = requests.get(correlationId);
         if (request != null) {
             ResponseHandler handler = request.responseHandler();
@@ -56,14 +56,14 @@ public class RequestRegistry {
             Duration duration = Duration.between(request.created(), Instant.now());
             if (duration.toMillis() >= requestTimeLogThreshold) {
                 requestLogger.info("Request for '{}', params: {}, response event: {} took {} ms", request.dataType(),
-                        request.requestBody(), dataType, duration.toMillis());
+                        request.requestBody(), message.eventType(), duration.toMillis());
             }
-            handler.handle(messageType, clientTraceId, userId, sessionId, dataType, response);
+            handler.handle(messageType, message);
             requests.remove(correlationId);
         } else {
             requestErrorLogger.warn(
                     "could not properly handle message, request id no longer active, requestId: {}, clientTraceId: {}, userId: {}, event: {}",
-                    correlationId, clientTraceId, userId, dataType);
+                    correlationId, message.clientTraceId(), message.userId(), message.eventType());
         }
 
     }
@@ -91,20 +91,21 @@ public class RequestRegistry {
         });
     }
 
-    public void registerNewRequest(String requestId, AmpqMessage message, ResponseHandler responseHandler) {
+    public void registerNewRequest(AmpqMessage message, ResponseHandler responseHandler) {
         Map<String, Object> properties = message.properties().getHeaders();
-        String eventType = (String) properties.get("event");
+        String eventType = message.eventType();
         String ipAddress = (String) properties.get("ipAddress");
         String userAgent = (String) properties.get("userAgent");
         String referer = (String) properties.get("X-Request-Referer");
         String requestUri = (String) properties.get("X-Request-URI");
         String requestVia = (String) properties.get("X-Request-Via");
         String device = (String) properties.get("device");
-        String userId = (String) properties.get("userId");
-        String sessionId = (String) properties.get("sessionId");
+        String userId = message.userId();
+        String sessionId = message.sessionId();
         String request = new String(message.body(), StandardCharsets.UTF_8);
-        registerNewRequest(new BackendRequest(requestId, eventType, Instant.now(), request, requestUri, ipAddress, userAgent,
-                referer, requestVia, device, userId, sessionId, responseHandler));
+        registerNewRequest(
+                new BackendRequest(message.correlationId(), eventType, Instant.now(), request, requestUri, ipAddress, userAgent,
+                        referer, requestVia, device, userId, sessionId, responseHandler));
 
     }
 
