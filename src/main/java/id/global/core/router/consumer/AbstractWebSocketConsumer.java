@@ -140,20 +140,21 @@ public abstract class AbstractWebSocketConsumer extends BaseConsumer {
         final String userId = message.userId();
         final String sessionId = message.sessionId();
         final String currentServiceId = message.currentServiceId();
-        if (log.isTraceEnabled()) {
-            log.trace("event: {}, userId: {}, session: {}, source: {} body: {}", eventType, userId, sessionId, currentServiceId,
-                    messageBody);
-        }
+        //        if (log.isTraceEnabled()) {
+        log.info("event: {}, userId: {}, session: {}, source: {} body: {}", eventType, userId, sessionId, currentServiceId,
+                messageBody);
+        //        }
 
         if (requestRegistry.isRequestValid(correlationId)) {
             requestRegistry.publishResponse(getSocketMessageType(), message);
         } else {
-            if (!"".equals(userId) && sessionId == null
-                    && correlationId != null) { //correlationId check is for subscription messages
-                log.warn("Message without userId and no sessionId, microservice: {}, message: {}", currentServiceId,
-                        trimMessage(messageBody));
-                return;
-            }
+            // TODO: consider introducing custom header for subscription messages and re-enabling this check
+//            if (!"".equals(userId) && sessionId == null
+//                    && correlationId != null) { //correlationId check is for subscription messages
+//                log.warn("Message without userId and no sessionId, microservice: {}, message: {}", currentServiceId,
+//                        trimMessage(messageBody));
+//                return;
+//            }
             sendToSocket(message);
         }
 
