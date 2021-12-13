@@ -1,11 +1,12 @@
 <?xml version="1.0"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <parent>
         <groupId>id.global</groupId>
         <artifactId>microservice-parent</artifactId>
         <version>4.1</version>
-        <relativePath />
+        <relativePath/>
     </parent>
     <groupId>id.global.core</groupId>
     <artifactId>router</artifactId>
@@ -60,22 +61,44 @@
             <artifactId>rest-assured</artifactId>
             <scope>test</scope>
         </dependency>
+        <dependency>
+            <groupId>io.quarkus</groupId>
+            <artifactId>quarkus-smallrye-jwt</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>io.quarkus</groupId>
+            <artifactId>quarkus-grpc</artifactId>
+        </dependency>
+        <!--
+
+
+                <dependency>
+                    <groupId>io.quarkus</groupId>
+                    <artifactId>quarkus-resteasy-reactive</artifactId>
+                </dependency>
+        -->
+        <dependency>
+            <groupId>io.envoyproxy.controlplane</groupId>
+            <artifactId>api</artifactId>
+            <version>0.1.28</version>
+        </dependency>
 
         <!-- EDA Quarkus extension -->
-       <!-- <dependency>
-            <groupId>id.global.events</groupId>
-            <artifactId>event-messaging</artifactId>
-            <version>${event-messaging.version}</version>
-        </dependency>-->
+        <!-- <dependency>
+             <groupId>id.global.events</groupId>
+             <artifactId>event-messaging</artifactId>
+             <version>${event-messaging.version}</version>
+         </dependency>-->
 
-      <!--  <dependency>
-            <groupId>id.global.amqp</groupId>
-            <artifactId>amqp-models-uphold</artifactId>
-            <version>${amqp-models-uphold.version}</version>
-            <scope>test</scope>
-        </dependency>-->
+        <!--  <dependency>
+              <groupId>id.global.amqp</groupId>
+              <artifactId>amqp-models-uphold</artifactId>
+              <version>${amqp-models-uphold.version}</version>
+              <scope>test</scope>
+          </dependency>-->
 
-<!--        Test dependencies -->
+        <!--        Test dependencies -->
         <dependency>
             <groupId>io.quarkus</groupId>
             <artifactId>quarkus-junit5-mockito</artifactId>

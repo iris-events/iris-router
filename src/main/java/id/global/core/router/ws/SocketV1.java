@@ -74,7 +74,24 @@ public class SocketV1 {
             }
             RequestWrapper msg = objectMapper.readerFor(RequestWrapper.class).readValue(message);
             log.info("message: {}", msg);
+            if (msg.event() == null) {
+                session.getAsyncRemote().sendText("{\"event\": \"error\", \"payload\":\"'event' missing\" }");
+            }
+            if (msg.payload() == null) {
+                session.getAsyncRemote().sendText("{\"event\": \"error\", \"payload\":\"'payload' missing\" }");
+            }
             var userSession = websocketRegistry.getSession(session.getId());
+            if ("subscribe".equals(msg.event())) {
+                log.info("we need to handle logging in");
+                if (websocketRegistry.subscribe(userSession, msg)) {
+                    userSession.sendMessageRaw("subscribed");
+                    //session.sendMessage(requestMessage.getClientTraceId(), "subscribed", null, "{\"success\": true}"
+                } else {
+                    userSession.sendMessageRaw("subscribe failed");
+                }
+                return;
+            }
+
             sendToBackend(userSession, msg);
         } catch (Exception e) {
             log.error("Could not handle message", e);

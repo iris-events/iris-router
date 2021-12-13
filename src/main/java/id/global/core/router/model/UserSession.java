@@ -18,6 +18,7 @@ import java.util.UUID;
 import javax.websocket.CloseReason;
 import javax.websocket.Session;
 
+import org.eclipse.microprofile.jwt.JsonWebToken;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -33,6 +34,7 @@ import id.global.core.router.consumer.AbstractWebSocketConsumer;
  */
 public class UserSession {
     private static final Logger log = LoggerFactory.getLogger(UserSession.class);
+    private final String anonymousUserId;
 
     static String trimMessage(String message) {
         if (message == null) {
@@ -44,16 +46,25 @@ public class UserSession {
         return message;
     }
 
+    private static String generateAnonymousUserId(String sessionId) {
+        if (sessionId != null && !sessionId.isBlank()) {
+            return "a-" + sessionId;
+        } else {
+            return "a-" + UUID.randomUUID()
+                    .toString()
+                    .substring(2);
+        }
+    }
+
     private final ObjectMapper objectMapper;
     private final String socketId;
     private final Instant connectedAt;
     private String userId;
-    private String trackingSessionId;
     private Instant blockedAt = Instant.EPOCH;
     private boolean anonymous;
     private Set<String> roles = Set.of();
-    private Session session;
-    private String token;
+    private final Session session;
+    private JsonWebToken token;
     private Instant tokenExpiry;
     private Map<String, Object> defaultMessageHeaders;
     private String clientIp;
@@ -65,7 +76,8 @@ public class UserSession {
         this.objectMapper = objectMapper;
         this.session = Objects.requireNonNull(session);
         this.socketId = session.getId();
-        this.userId = socketId; //for now as we don't have user_id
+        this.anonymousUserId = generateAnonymousUserId(session.getId());
+        this.userId = anonymousUserId;
         this.anonymous = true;
         this.connectedAt = Instant.now();
         log.info("created new user session for userId: {}, socket id: {}", userId, socketId);
@@ -76,11 +88,9 @@ public class UserSession {
         return socketId;
     }
 
-    /*
-     * public String getClientIp() {
-     * return clientIp;
-     * }
-     */
+    public String getClientIp() {
+        return clientIp;
+    }
 
     public Instant getConnectedAt() {
         return connectedAt;
@@ -112,28 +122,33 @@ public class UserSession {
 
     }
 
-    @Override
-    public boolean equals(Object o) {
-        if (this == o)
-            return true;
-        if (o == null || getClass() != o.getClass())
-            return false;
-        UserSession that = (UserSession) o;
-        return Objects.equals(socketId, that.socketId) &&
-                Objects.equals(userId, that.userId);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(socketId, userId);
-    }
-
     public boolean isValid() {//todo implement more checks
         if (anonymous) {
             return true;
         }
 
         return tokenExpiry.isAfter(Instant.now());
+    }
+
+    public void login(JsonWebToken token) {
+        if (token.getSubject().equals(this.userId)) {
+            log.info("user is same, JWT has has updated, new JWT has roles: {}", token.getGroups());
+        }
+
+        this.userId = token.getSubject();
+        update(token);
+        anonymous = false;
+    }
+
+    public void update(JsonWebToken token) {
+        if (!token.getSubject()
+                .equals(this.userId)) {
+            log.warn("Could not update token for different user, sent user: {}, our user: {}", token.getSubject(), this.userId);
+            return;
+        }
+        this.token = token;
+        this.roles = token.getGroups();
+        this.tokenExpiry = Instant.ofEpochSecond(token.getExpirationTime());
     }
 
     public String logOut() {
@@ -165,19 +180,17 @@ public class UserSession {
 
     }
 
-    public void setUserHeaders(Map<String, Object> headers) {
-        /*
-         * if (anonymous) {
-         * headers.put(SecurityTokenKind.ANONYMOUS.getValue(), anonymousUserId);
-         * headers.put("userId", anonymousUserId);
-         * } else {
-         * headers.put(SecurityTokenKind.JWT.getValue(), jwtToken);
-         * headers.put("userId", userId);
-         * }
-         * headers.putAll(defaultMessageHeaders);
-         */
+    public void setBackendMessageHeaders(Map<String, Object> headers) {
+        if (anonymous) {
+            //headers.put(SecurityTokenKind.ANONYMOUS.getValue(), anonymousUserId);
+            headers.put("anon-id", anonymousUserId);
+            headers.put("userId", anonymousUserId);
+        } else {
+            //headers.put("jwt", token.getRawToken());
+            headers.put("Authorization", "Bearer " + token.getRawToken());
+            headers.put("userId", userId);
+        }
         //headers.put(SecurityTokenKind.ANONYMOUS.getValue(), anonymousUserId);
-        headers.put("userId", userId);
         headers.putAll(defaultMessageHeaders);
 
     }
@@ -233,7 +246,7 @@ public class UserSession {
         var eventType = requestMessage.event();
 
         var headers = new HashMap<String, Object>();
-        setUserHeaders(headers);
+        setBackendMessageHeaders(headers);
         headers.put("eventType", eventType);
         headers.put("clientTraceId", requestMessage.clientTraceId());
         headers.put("X-Request-Via", "router/WebSocket");
@@ -309,5 +322,21 @@ public class UserSession {
                 ", userId='" + userId + '\'' +
                 ", roles=" + roles +
                 '}';
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o)
+            return true;
+        if (o == null || getClass() != o.getClass())
+            return false;
+        UserSession that = (UserSession) o;
+        return Objects.equals(socketId, that.socketId) &&
+                Objects.equals(userId, that.userId);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(socketId, userId);
     }
 }

@@ -8,6 +8,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArraySet;
 
 import javax.enterprise.context.ApplicationScoped;
+import javax.inject.Inject;
 import javax.websocket.Session;
 
 import org.slf4j.Logger;
@@ -15,9 +16,11 @@ import org.slf4j.LoggerFactory;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import id.global.core.router.client.AuthClient;
 import id.global.core.router.model.AmpqMessage;
 import id.global.core.router.model.RequestWrapper;
 import id.global.core.router.model.ResponseHandler;
+import id.global.core.router.model.Subscribe;
 import id.global.core.router.model.UserSession;
 import id.global.core.router.model.WSResponseHandler;
 
@@ -111,15 +114,6 @@ public class WebsocketRegistry {
         requestRegistry.registerNewRequest(message, responseHandler);
     }
 
-    public boolean login(String sessionId, String token, String clientTraceId) {
-        UserSession sessionV2 = sockets.get(sessionId);
-        if (sessionV2 == null) {
-            LOGGER.warn("Could not find session: {}, cannot perform login!", sessionId);
-            return false;
-        }
-        return login(sessionV2, token, clientTraceId);
-    }
-
     public boolean logout(String sessionId) {
         UserSession session = sockets.get(sessionId);
         if (session == null) {
@@ -132,9 +126,21 @@ public class WebsocketRegistry {
         return true;
     }
 
-    private boolean login(UserSession userSession, String token, String clientTraceId) {
+    @Inject
+    AuthClient authClient;
 
-        return false;
+    private boolean login(UserSession userSession, String authToken) {
+
+        LOGGER.info("checking token: {}", authToken);
+        var jwtToken = authClient.checkToken(authToken);
+        if (jwtToken != null) {
+            LOGGER.info("user logged in: {}", jwtToken.getSubject());
+            userSession.login(jwtToken);
+            return true;
+        } else {
+            return false;
+        }
+
     }
 
     /*
@@ -149,15 +155,14 @@ public class WebsocketRegistry {
      */
 
     public boolean subscribe(UserSession userSession, RequestWrapper requestMessage) {
-        /*
-         * Subscribe subscribe = objectMapper.convertValue(requestMessage.getPayload(), Subscribe.class);
-         * LOGGER.info("subscribe info: {}", subscribe);
-         * userSession.init(subscribe.getDeviceId(), subscribe.getApplication(), subscribe.isHeartbeat());
-         * if (subscribe.getToken() != null) {
-         * return login(userSession, subscribe.getToken(), requestMessage.getClientTraceId());
-         * }
-         */
-        return true;
+        Subscribe subscribe = objectMapper.convertValue(requestMessage.payload(), Subscribe.class);
+        LOGGER.info("subscribe info: {}", subscribe);
+        //userSession.init(subscribe.getDeviceId(), subscribe.getApplication(), subscribe.isHeartbeat());
+        LOGGER.warn("token is null");
+        if (subscribe.token() != null) {
+            return login(userSession, subscribe.token());
+        }
+        return false;
     }
 
     /*

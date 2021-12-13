@@ -149,12 +149,12 @@ public abstract class AbstractWebSocketConsumer extends BaseConsumer {
             requestRegistry.publishResponse(getSocketMessageType(), message);
         } else {
             // TODO: consider introducing custom header for subscription messages and re-enabling this check
-//            if (!"".equals(userId) && sessionId == null
-//                    && correlationId != null) { //correlationId check is for subscription messages
-//                log.warn("Message without userId and no sessionId, microservice: {}, message: {}", currentServiceId,
-//                        trimMessage(messageBody));
-//                return;
-//            }
+            //            if (!"".equals(userId) && sessionId == null
+            //                    && correlationId != null) { //correlationId check is for subscription messages
+            //                log.warn("Message without userId and no sessionId, microservice: {}, message: {}", currentServiceId,
+            //                        trimMessage(messageBody));
+            //                return;
+            //            }
             sendToSocket(message);
         }
 
