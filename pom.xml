@@ -70,26 +70,11 @@
             <groupId>io.quarkus</groupId>
             <artifactId>quarkus-grpc</artifactId>
         </dependency>
-        <!--
-
-
-                <dependency>
-                    <groupId>io.quarkus</groupId>
-                    <artifactId>quarkus-resteasy-reactive</artifactId>
-                </dependency>
-        -->
         <dependency>
             <groupId>io.envoyproxy.controlplane</groupId>
             <artifactId>api</artifactId>
             <version>0.1.28</version>
         </dependency>
-
-        <!-- EDA Quarkus extension -->
-        <!-- <dependency>
-             <groupId>id.global.events</groupId>
-             <artifactId>event-messaging</artifactId>
-             <version>${event-messaging.version}</version>
-         </dependency>-->
 
         <!--  <dependency>
               <groupId>id.global.amqp</groupId>

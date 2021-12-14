@@ -186,8 +186,8 @@ public class UserSession {
             headers.put("anon-id", anonymousUserId);
             headers.put("userId", anonymousUserId);
         } else {
-            //headers.put("jwt", token.getRawToken());
-            headers.put("Authorization", "Bearer " + token.getRawToken());
+            headers.put("jwt", token.getRawToken());
+            //headers.put("Authorization", "Bearer " + token.getRawToken());
             headers.put("userId", userId);
         }
         //headers.put(SecurityTokenKind.ANONYMOUS.getValue(), anonymousUserId);
