@@ -43,12 +43,12 @@ public class BackendService {
             channel = connection.createChannel();
             channel.addConfirmListener(new ConfirmListener() {
                 @Override
-                public void handleAck(long deliveryTag, boolean multiple) throws IOException {
+                public void handleAck(long deliveryTag, boolean multiple) {
                     log.info("ack");
                 }
 
                 @Override
-                public void handleNack(long deliveryTag, boolean multiple) throws IOException {
+                public void handleNack(long deliveryTag, boolean multiple) {
                     log.info("nack");
                 }
             });

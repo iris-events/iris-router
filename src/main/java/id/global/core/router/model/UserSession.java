@@ -1,5 +1,18 @@
 package id.global.core.router.model;
 
+import static id.global.common.headers.amqp.MessageHeaders.ANONYMOUS_ID;
+import static id.global.common.headers.amqp.MessageHeaders.CLIENT_TRACE_ID;
+import static id.global.common.headers.amqp.MessageHeaders.DEVICE;
+import static id.global.common.headers.amqp.MessageHeaders.EVENT_TYPE;
+import static id.global.common.headers.amqp.MessageHeaders.IP_ADDRESS;
+import static id.global.common.headers.amqp.MessageHeaders.JWT;
+import static id.global.common.headers.amqp.MessageHeaders.PROXY_IP_ADDRESS;
+import static id.global.common.headers.amqp.MessageHeaders.REQUEST_VIA;
+import static id.global.common.headers.amqp.MessageHeaders.ROUTER;
+import static id.global.common.headers.amqp.MessageHeaders.SESSION_ID;
+import static id.global.common.headers.amqp.MessageHeaders.USER_AGENT;
+import static id.global.common.headers.amqp.MessageHeaders.USER_ID;
+
 import java.io.IOException;
 import java.io.StringWriter;
 import java.io.UncheckedIOException;
@@ -182,17 +195,13 @@ public class UserSession {
 
     public void setBackendMessageHeaders(Map<String, Object> headers) {
         if (anonymous) {
-            //headers.put(SecurityTokenKind.ANONYMOUS.getValue(), anonymousUserId);
-            headers.put("anon-id", anonymousUserId);
-            headers.put("userId", anonymousUserId);
+            headers.put(ANONYMOUS_ID, anonymousUserId);
+            headers.put(USER_ID, anonymousUserId);
         } else {
-            headers.put("jwt", token.getRawToken());
-            //headers.put("Authorization", "Bearer " + token.getRawToken());
-            headers.put("userId", userId);
+            headers.put(JWT, token.getRawToken());
+            headers.put(USER_ID, userId);
         }
-        //headers.put(SecurityTokenKind.ANONYMOUS.getValue(), anonymousUserId);
         headers.putAll(defaultMessageHeaders);
-
     }
 
     private void setupDefaultHeaders(Map<String, List<String>> headers) {
@@ -227,18 +236,18 @@ public class UserSession {
         }
         this.userAgent = userAgent;
         this.defaultMessageHeaders = new HashMap<>();
-        defaultMessageHeaders.put("proxyIpAddress", proxyIp);
+        defaultMessageHeaders.put(PROXY_IP_ADDRESS, proxyIp);
 
-        defaultMessageHeaders.put("userAgent", userAgent);
-        defaultMessageHeaders.put("sessionId", session.getId());
-        defaultMessageHeaders.put("userId", userId);
+        defaultMessageHeaders.put(USER_AGENT, userAgent);
+        defaultMessageHeaders.put(SESSION_ID, session.getId());
+        defaultMessageHeaders.put(USER_ID, userId);
         if (clientIp != null) {
-            defaultMessageHeaders.put("ipAddress", clientIp);
+            defaultMessageHeaders.put(IP_ADDRESS, clientIp);
         }
         if (clientDeviceId != null) {
-            defaultMessageHeaders.put("device", clientDeviceId);
+            defaultMessageHeaders.put(DEVICE, clientDeviceId);
         }
-        defaultMessageHeaders.put("router", AbstractWebSocketConsumer.routerId);
+        defaultMessageHeaders.put(ROUTER, AbstractWebSocketConsumer.routerId);
     }
 
     public AmpqMessage createBackendRequest(RequestWrapper requestMessage) {
@@ -247,12 +256,11 @@ public class UserSession {
 
         var headers = new HashMap<String, Object>();
         setBackendMessageHeaders(headers);
-        headers.put("eventType", eventType);
-        headers.put("clientTraceId", requestMessage.clientTraceId());
-        headers.put("X-Request-Via", "router/WebSocket");
+        headers.put(EVENT_TYPE, eventType);
+        headers.put(CLIENT_TRACE_ID, requestMessage.clientTraceId());
+        headers.put(REQUEST_VIA, "router/WebSocket");
         if (log.isTraceEnabled()) {
             var copy = new HashMap<>(headers);
-
             log.trace("[{}] backend payload: {},  headers: {}", getUserId(), requestMessage.payload(), copy);
         }
         String correlationId = UUID.randomUUID().toString();

@@ -1,5 +1,12 @@
 package id.global.core.router.service;
 
+import static id.global.common.headers.amqp.MessageHeaders.DEVICE;
+import static id.global.common.headers.amqp.MessageHeaders.IP_ADDRESS;
+import static id.global.common.headers.amqp.MessageHeaders.REQUEST_REFERER;
+import static id.global.common.headers.amqp.MessageHeaders.REQUEST_URI;
+import static id.global.common.headers.amqp.MessageHeaders.REQUEST_VIA;
+import static id.global.common.headers.amqp.MessageHeaders.USER_AGENT;
+
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.time.Instant;
@@ -94,12 +101,12 @@ public class RequestRegistry {
     public void registerNewRequest(AmpqMessage message, ResponseHandler responseHandler) {
         Map<String, Object> properties = message.properties().getHeaders();
         String eventType = message.eventType();
-        String ipAddress = (String) properties.get("ipAddress");
-        String userAgent = (String) properties.get("userAgent");
-        String referer = (String) properties.get("X-Request-Referer");
-        String requestUri = (String) properties.get("X-Request-URI");
-        String requestVia = (String) properties.get("X-Request-Via");
-        String device = (String) properties.get("device");
+        String ipAddress = (String) properties.get(IP_ADDRESS);
+        String userAgent = (String) properties.get(USER_AGENT);
+        String referer = (String) properties.get(REQUEST_REFERER);
+        String requestUri = (String) properties.get(REQUEST_URI);
+        String requestVia = (String) properties.get(REQUEST_VIA);
+        String device = (String) properties.get(DEVICE);
         String userId = message.userId();
         String sessionId = message.sessionId();
         String request = new String(message.body(), StandardCharsets.UTF_8);
