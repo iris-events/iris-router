@@ -1,6 +1,21 @@
 package id.global.core.router.service;
 
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CopyOnWriteArraySet;
+
+import javax.enterprise.context.ApplicationScoped;
+import javax.inject.Inject;
+import javax.websocket.Session;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
+
 import id.global.core.router.client.AuthClient;
 import id.global.core.router.model.AmpqMessage;
 import id.global.core.router.model.RequestWrapper;
@@ -8,18 +23,6 @@ import id.global.core.router.model.ResponseHandler;
 import id.global.core.router.model.Subscribe;
 import id.global.core.router.model.UserSession;
 import id.global.core.router.model.WSResponseHandler;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import javax.enterprise.context.ApplicationScoped;
-import javax.inject.Inject;
-import javax.websocket.Session;
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.CopyOnWriteArraySet;
 
 /**
  * @author Tomaž Cerar
@@ -164,13 +167,11 @@ public class WebsocketRegistry {
 
     public void updateUserId(String oldUserId, String newUserId) {
         LOGGER.info("updating identity for user: {}, --> {}", oldUserId, newUserId);
-        Set<UserSession> sessions = users.getOrDefault(newUserId, new CopyOnWriteArraySet<>());
+        Set<UserSession> sessions = users.computeIfAbsent(newUserId, s -> new CopyOnWriteArraySet<>());
         Set<UserSession> oldSessions = users.remove(oldUserId);
         if (oldSessions != null) {
             sessions.addAll(oldSessions);
         }
-        users.putIfAbsent(newUserId, sessions);
     }
-
 
 }
