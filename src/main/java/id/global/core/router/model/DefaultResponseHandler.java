@@ -9,19 +9,21 @@ import com.fasterxml.jackson.databind.ObjectMapper;
  * @author Tomaz Cerar
  */
 public abstract class DefaultResponseHandler implements ResponseHandler {
-    static Logger LOGGER = LoggerFactory.getLogger(DefaultResponseHandler.class);
+    static Logger log = LoggerFactory.getLogger(DefaultResponseHandler.class);
 
     protected abstract ObjectMapper getObjectMapper();
 
     @Override
     public void handle(ResponseMessageType responseMessageType, AmpqMessage message) {
-        String eventType = message.eventType();
-        if (!"exception".equals(eventType)) {
+        if (responseMessageType != ResponseMessageType.ERROR) {
             onSuccess(responseMessageType, message);
         } else {
-            LOGGER.warn("No exception handling yet");
+            log.warn("Handling exception error message.");
+            onFailure(message);
         }
     }
+
+    protected abstract void onFailure(final AmpqMessage message);
 
     protected abstract void onSuccess(ResponseMessageType responseMessageType, AmpqMessage message);
 
