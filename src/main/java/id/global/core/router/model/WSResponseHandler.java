@@ -41,6 +41,12 @@ public class WSResponseHandler extends DefaultResponseHandler {
         }
     }
 
+    @Override
+    protected void onFailure(final AmpqMessage message) {
+        // always send error message only to current active session
+        sendToSession(message);
+    }
+
     private void sendToSession(AmpqMessage message) {
         String sessionId = message.sessionId();
         if (sessionId == null || sessionId.isBlank()) {

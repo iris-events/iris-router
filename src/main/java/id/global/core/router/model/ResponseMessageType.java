@@ -6,5 +6,6 @@ package id.global.core.router.model;
 public enum ResponseMessageType {
     RPC,
     SESSION,
-    BROADCAST
+    BROADCAST,
+    ERROR
 }

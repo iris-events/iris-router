@@ -1,5 +1,7 @@
 package id.global.core.router.consumer;
 
+import static id.global.common.headers.amqp.MessageHeaders.EVENT_TYPE;
+
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.nio.charset.StandardCharsets;
@@ -93,9 +95,9 @@ public abstract class BaseConsumer {
                     log.info("exchange: {}, queue: {}, routing key: {}, deliveryTag: {}", envelope.getExchange(), queueName,
                             envelope.getRoutingKey(), envelope.getDeliveryTag());
                     log.info("properties: {}", properties);
-                    Object event = properties.getHeaders().get("eventType");
+                    Object event = properties.getHeaders().get(EVENT_TYPE);
                     if (event == null) {
-                        throw new RuntimeException("Required header 'eventType' missing on message");
+                        throw new RuntimeException("Required header '" + EVENT_TYPE + "' missing on message");
                     }
 
                     AmpqMessage m = new AmpqMessage(body, properties, event.toString());
