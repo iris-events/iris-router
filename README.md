@@ -1,4 +1,4 @@
-# Websocket router
+# IRIS Websocket router
 
 This project uses Quarkus, the Supersonic Subatomic Java Framework.
 
