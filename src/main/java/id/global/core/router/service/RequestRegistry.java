@@ -1,11 +1,11 @@
 package id.global.core.router.service;
 
-import static id.global.common.headers.amqp.MessageHeaders.DEVICE;
-import static id.global.common.headers.amqp.MessageHeaders.IP_ADDRESS;
-import static id.global.common.headers.amqp.MessageHeaders.REQUEST_REFERER;
-import static id.global.common.headers.amqp.MessageHeaders.REQUEST_URI;
-import static id.global.common.headers.amqp.MessageHeaders.REQUEST_VIA;
-import static id.global.common.headers.amqp.MessageHeaders.USER_AGENT;
+import static id.global.common.headers.amqp.MessagingHeaders.Message.DEVICE;
+import static id.global.common.headers.amqp.MessagingHeaders.Message.IP_ADDRESS;
+import static id.global.common.headers.amqp.MessagingHeaders.Message.REQUEST_REFERER;
+import static id.global.common.headers.amqp.MessagingHeaders.Message.REQUEST_URI;
+import static id.global.common.headers.amqp.MessagingHeaders.Message.REQUEST_VIA;
+import static id.global.common.headers.amqp.MessagingHeaders.Message.USER_AGENT;
 
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
