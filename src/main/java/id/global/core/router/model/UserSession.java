@@ -1,17 +1,17 @@
 package id.global.core.router.model;
 
-import static id.global.common.headers.amqp.MessageHeaders.ANONYMOUS_ID;
-import static id.global.common.headers.amqp.MessageHeaders.CLIENT_TRACE_ID;
-import static id.global.common.headers.amqp.MessageHeaders.DEVICE;
-import static id.global.common.headers.amqp.MessageHeaders.EVENT_TYPE;
-import static id.global.common.headers.amqp.MessageHeaders.IP_ADDRESS;
-import static id.global.common.headers.amqp.MessageHeaders.JWT;
-import static id.global.common.headers.amqp.MessageHeaders.PROXY_IP_ADDRESS;
-import static id.global.common.headers.amqp.MessageHeaders.REQUEST_VIA;
-import static id.global.common.headers.amqp.MessageHeaders.ROUTER;
-import static id.global.common.headers.amqp.MessageHeaders.SESSION_ID;
-import static id.global.common.headers.amqp.MessageHeaders.USER_AGENT;
-import static id.global.common.headers.amqp.MessageHeaders.USER_ID;
+import static id.global.common.headers.amqp.MessagingHeaders.Message.ANONYMOUS_ID;
+import static id.global.common.headers.amqp.MessagingHeaders.Message.CLIENT_TRACE_ID;
+import static id.global.common.headers.amqp.MessagingHeaders.Message.DEVICE;
+import static id.global.common.headers.amqp.MessagingHeaders.Message.EVENT_TYPE;
+import static id.global.common.headers.amqp.MessagingHeaders.Message.IP_ADDRESS;
+import static id.global.common.headers.amqp.MessagingHeaders.Message.JWT;
+import static id.global.common.headers.amqp.MessagingHeaders.Message.PROXY_IP_ADDRESS;
+import static id.global.common.headers.amqp.MessagingHeaders.Message.REQUEST_VIA;
+import static id.global.common.headers.amqp.MessagingHeaders.Message.ROUTER;
+import static id.global.common.headers.amqp.MessagingHeaders.Message.SESSION_ID;
+import static id.global.common.headers.amqp.MessagingHeaders.Message.USER_AGENT;
+import static id.global.common.headers.amqp.MessagingHeaders.Message.USER_ID;
 
 import java.io.IOException;
 import java.io.StringWriter;
@@ -40,6 +40,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.rabbitmq.client.AMQP;
 
+import id.global.common.headers.amqp.MessagingHeaders;
 import id.global.core.router.consumer.AbstractWebSocketConsumer;
 
 /**
@@ -307,7 +308,7 @@ public class UserSession {
             jGenerator.writeStartObject();
             jGenerator.writeStringField("event", message.eventType());
             if (message.clientTraceId() != null) {
-                jGenerator.writeStringField("clientTraceId", message.clientTraceId());
+                jGenerator.writeStringField(CLIENT_TRACE_ID, message.clientTraceId());
             }
             if (message.body() != null) {
                 jGenerator.writeFieldName("payload");

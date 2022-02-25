@@ -18,7 +18,7 @@
     </scm>
 
     <properties>
-        <globalid-common.version>1.0.20</globalid-common.version>
+        <globalid-common.version>1.1.6</globalid-common.version>
     </properties>
     <dependencies>
         <dependency>
