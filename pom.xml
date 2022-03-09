@@ -74,8 +74,6 @@
             <version>0.1.28</version>
         </dependency>
 
-    
-
         <!--        Test dependencies -->
         <dependency>
             <groupId>io.quarkus</groupId>
