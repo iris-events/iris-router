@@ -3,10 +3,16 @@ name: Deploy
 on:
   push:
     branches:
-      - 'feat-*'
-      - 'fix-*'
+      - 'master'
+      - 'main'
     tags:
       - 'v*'
+  pull_request_target:
+    types:
+      - opened
+    branches:
+      - 'main'
+      - 'master'
   workflow_dispatch:
 
 
