@@ -4,6 +4,8 @@ import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 import java.util.regex.Pattern;
 
+import io.vertx.core.buffer.Buffer;
+
 /**
  * @author Tomaz Cerar
  */
@@ -43,6 +45,10 @@ public record BackendRequest(String requestId, String dataType, Instant created,
 
     public static String sanitizeBody(byte[] body) {
         return sanitizeBody(new String(body, StandardCharsets.UTF_8));
+    }
+
+    public static String sanitizeBody(Buffer body) {
+        return sanitizeBody(body.toString(StandardCharsets.UTF_8));
     }
 
     public static String sanitizeBody(String body) {

@@ -1,30 +1,25 @@
 package id.global.core.router.ws;
 
-import java.nio.charset.StandardCharsets;
-
 import javax.inject.Inject;
 
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
-import com.rabbitmq.client.Connection;
-
-import io.quarkiverse.rabbitmqclient.RabbitMQClient;
 import io.quarkus.test.junit.QuarkusTest;
+import io.vertx.core.buffer.Buffer;
+import io.vertx.rabbitmq.RabbitMQClient;
 
 @QuarkusTest
 @Disabled
 public class WebsocketQueueTests {
 
     @Inject
-    RabbitMQClient rabbitMQClient;
+    RabbitMQClient client;
 
     @Test
     public void testDelivery() throws Exception {
-        Connection connection = rabbitMQClient.connect("test");
-        var channel = connection.createChannel();
-        channel.basicPublish("websocket", "#.websocket", null, "test".getBytes(StandardCharsets.UTF_8));
-        channel.basicPublish("websocket", "#.websocket", null, "test".getBytes(StandardCharsets.UTF_8));
+        client.basicPublish("user", "#.say-hello", null, Buffer.buffer("test"));
+        //client.basicPublish("websocket", "#.websocket", null, Buffer.buffer("test"));
     }
 
 }

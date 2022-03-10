@@ -22,9 +22,8 @@
         <version.iris-subscription-models>1.0.0</version.iris-subscription-models>
         <version.iris-asyncapi>1.1.10</version.iris-asyncapi>
         <version.quarkus-rabbitmq-client>0.5.0.Final</version.quarkus-rabbitmq-client>
-        <version.apicurio-data-models>1.1.20</version.apicurio-data-models>
-        <version.apicurio-registry-client>2.2.0.Final</version.apicurio-registry-client>
         <version.controlplane-api>0.1.31</version.controlplane-api>
+        <version.iris-demo-inventory-models>1.0.3-SNAPSHOT</version.iris-demo-inventory-models>
     </properties>
     <dependencies>
         <dependency>
@@ -43,10 +42,14 @@
             <version>${version.iris-subscription-models}</version>
         </dependency>
 
+<!--        <dependency>-->
+<!--            <groupId>io.quarkiverse.rabbitmqclient</groupId>-->
+<!--            <artifactId>quarkus-rabbitmq-client</artifactId>-->
+<!--            <version>${version.quarkus-rabbitmq-client}</version>-->
+<!--        </dependency>-->
         <dependency>
-            <groupId>io.quarkiverse.rabbitmqclient</groupId>
-            <artifactId>quarkus-rabbitmq-client</artifactId>
-            <version>${version.quarkus-rabbitmq-client}</version>
+            <groupId>io.quarkus</groupId>
+            <artifactId>quarkus-smallrye-reactive-messaging-rabbitmq</artifactId>
         </dependency>
         <dependency>
             <groupId>io.quarkus</groupId>
@@ -71,6 +74,12 @@
         </dependency>
 
         <!-- Test dependencies -->
+        <dependency>
+            <groupId>id.global.iris</groupId>
+            <artifactId>iris-demo-inventory-models</artifactId>
+            <version>${version.iris-demo-inventory-models}</version>
+            <scope>test</scope>
+        </dependency>
         <dependency>
             <groupId>io.quarkus</groupId>
             <artifactId>quarkus-junit5-mockito</artifactId>
