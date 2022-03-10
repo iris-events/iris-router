@@ -109,7 +109,7 @@ public class RequestRegistry {
         String device = (String) properties.get(DEVICE);
         String userId = message.userId();
         String sessionId = message.sessionId();
-        String request = new String(message.body(), StandardCharsets.UTF_8);
+        String request = message.body().copy().toString(StandardCharsets.UTF_8);
         registerNewRequest(
                 new BackendRequest(message.correlationId(), eventType, Instant.now(), request, requestUri, ipAddress, userAgent,
                         referer, requestVia, device, userId, sessionId, responseHandler));

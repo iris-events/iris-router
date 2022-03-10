@@ -41,6 +41,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.rabbitmq.client.AMQP;
 
 import id.global.core.router.consumer.AbstractWebSocketConsumer;
+import io.vertx.core.buffer.Buffer;
 
 /**
  * @author Tomaz Cerar
@@ -280,9 +281,10 @@ public class UserSession {
 
     }
 
-    private byte[] writeValueAsBytes(Object value) throws RuntimeException {
+    private Buffer writeValueAsBytes(Object value) throws RuntimeException {
         try {
-            return objectMapper.writeValueAsBytes(value);
+
+            return Buffer.buffer(objectMapper.writeValueAsBytes(value));
         } catch (JsonProcessingException e) {
             throw new RuntimeException("Could not serialize to json", e);
         }
@@ -319,7 +321,7 @@ public class UserSession {
             }
             if (message.body() != null) {
                 jGenerator.writeFieldName(PAYLOAD_FIELD);
-                jGenerator.writeRawValue(new String(message.body(), StandardCharsets.UTF_8));
+                jGenerator.writeRawValue(message.body().toString(StandardCharsets.UTF_8));
                 jGenerator.writeEndObject();
             }
 

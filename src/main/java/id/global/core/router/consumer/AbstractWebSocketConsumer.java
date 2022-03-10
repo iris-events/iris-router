@@ -1,12 +1,8 @@
 package id.global.core.router.consumer;
 
-import java.io.IOException;
-import java.io.UncheckedIOException;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.UUID;
 
 import javax.inject.Inject;
@@ -21,6 +17,8 @@ import id.global.core.router.model.ResponseHandler;
 import id.global.core.router.model.ResponseMessageType;
 import id.global.core.router.service.RequestRegistry;
 import id.global.core.router.service.WebsocketRegistry;
+import io.vertx.core.Future;
+import io.vertx.core.json.JsonObject;
 
 /**
  * @author Tomaz Cerar
@@ -48,35 +46,64 @@ public abstract class AbstractWebSocketConsumer extends BaseConsumer {
         return message;
     }
 
+    /*
+     * @Override
+     * protected void createQueues(String queueName) {
+     * 
+     * final String queueWithSuffix = getNameSuffix(queueName, routerId);
+     * //ConsumerForMessage consumerForMessage = getConsumerForMessage();
+     * 
+     * Map<String, Object> args = new HashMap<>();
+     * args.put("x-message-ttl", 5000);
+     * 
+     * //super.prefetchCount = consumerForMessage.consumerPrefetch();
+     * 
+     * try {
+     * 
+     * // declare exchanges and queues
+     * channel.queueDeclare(queueWithSuffix, true, false, true, args);
+     * channel.exchangeDeclare(queueName, BuiltinExchangeType.TOPIC, true, false, null);
+     * queueBind(queueWithSuffix, queueName, "#." + queueName);
+     * queueBind(queueWithSuffix, queueName, getRoutingKey(queueName));
+     * 
+     * } catch (IOException e) {
+     * throw new UncheckedIOException(e);
+     * }
+     * setListener(queueWithSuffix);
+     * }
+     */
     @Override
     protected void createQueues(String queueName) {
 
         final String queueWithSuffix = getNameSuffix(queueName, routerId);
-        //ConsumerForMessage consumerForMessage = getConsumerForMessage();
 
-        Map<String, Object> args = new HashMap<>();
+        JsonObject args = new JsonObject();
         args.put("x-message-ttl", 5000);
 
         //super.prefetchCount = consumerForMessage.consumerPrefetch();
 
-        try {
+        client.addConnectionEstablishedCallback(promise -> {
 
-            // declare exchanges and queues
-            channel.queueDeclare(queueWithSuffix, true, false, true, args);
-            channel.exchangeDeclare(queueName, BuiltinExchangeType.TOPIC, true, false, null);
-            queueBind(queueWithSuffix, queueName, "#." + queueName);
-            queueBind(queueWithSuffix, queueName, getRoutingKey(queueName));
+            client.exchangeDeclare(queueName, BuiltinExchangeType.TOPIC.getType(), true, false)
+                    .compose(v -> client.queueDeclare(queueWithSuffix, true, false, true, args))
+                    .compose(dok -> queueBind(queueWithSuffix, queueName, "#." + queueName))
+                    .compose(dok -> queueBind(queueWithSuffix, queueName, getRoutingKey(queueName)))
+                    .onSuccess(unused -> setListener(queueWithSuffix))
+                    .onComplete(promise);
+        });
 
-        } catch (IOException e) {
-            throw new UncheckedIOException(e);
-        }
-        setListener(queueWithSuffix);
     }
 
-    private void queueBind(String queue, String exchange, String routingKey) throws IOException {
-        channel.queueBind(queue, exchange, routingKey);
+    private Future<Void> queueBind(String queue, String exchange, String routingKey) {
         log.info("binding: '{}' --> '{}' with routing key: '{}'", queue, exchange, routingKey);
+        return client.queueBind(queue, exchange, routingKey);
     }
+    /*
+     * private void queueBind(String queue, String exchange, String routingKey) throws IOException {
+     * channel.queueBind(queue, exchange, routingKey);
+     * log.info("binding: '{}' --> '{}' with routing key: '{}'", queue, exchange, routingKey);
+     * }
+     */
 
     protected String getRoutingKey(String queueName) {
         return "#." + queueName + "." + routerId;
@@ -128,7 +155,8 @@ public abstract class AbstractWebSocketConsumer extends BaseConsumer {
          * }
          */
         final String correlationId = message.correlationId();
-        final String messageBody = new String(message.body(), StandardCharsets.UTF_8);
+
+        final String messageBody = message.body().copy().toString(StandardCharsets.UTF_8);
         if (router != null) {
             if (!routerId.equals(router)) {
                 log.info("Message trace id '{}' does not belong to this server, message: {}", correlationId,

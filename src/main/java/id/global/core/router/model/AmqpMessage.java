@@ -7,9 +7,11 @@ import static id.global.common.constants.iris.MessagingHeaders.Message.SESSION_I
 import static id.global.common.constants.iris.MessagingHeaders.Message.SUBSCRIPTION_ID;
 import static id.global.common.constants.iris.MessagingHeaders.Message.USER_ID;
 
-import com.rabbitmq.client.AMQP;
+import com.rabbitmq.client.BasicProperties;
 
-public record AmqpMessage(byte[] body, AMQP.BasicProperties properties, String eventType) {
+import io.vertx.core.buffer.Buffer;
+
+public record AmqpMessage(Buffer body, BasicProperties properties, String eventType) {
 
     public String userId() {
         return getStringHeader(properties, USER_ID);
@@ -39,7 +41,7 @@ public record AmqpMessage(byte[] body, AMQP.BasicProperties properties, String e
         return getStringHeader(properties, SUBSCRIPTION_ID);
     }
 
-    private String getStringHeader(AMQP.BasicProperties props, String name) {
+    private String getStringHeader(BasicProperties props, String name) {
         var r = props.getHeaders().get(name);
         if (r != null) {
             return r.toString();

@@ -13,7 +13,6 @@ import javax.websocket.OnOpen;
 import javax.websocket.Session;
 
 import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -21,11 +20,12 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 
 import id.global.common.annotations.iris.Message;
 import id.global.core.router.model.RequestWrapper;
+import id.global.iris.irisdemoinventory.InventoryStockInquiry;
 import io.quarkus.test.common.http.TestHTTPResource;
 import io.quarkus.test.junit.QuarkusTest;
 
 @QuarkusTest
-@Disabled
+
 public class WebsocketTest {
 
     private static final LinkedBlockingDeque<String> MESSAGES = new LinkedBlockingDeque<>();
@@ -33,8 +33,7 @@ public class WebsocketTest {
     @TestHTTPResource("/v0/websocket")
     URI uri;
 
-    @Inject
-    ObjectMapper objectMapper;
+    ObjectMapper objectMapper = new ObjectMapper();
 
     @Test
     public void testSimpleMessage() throws Exception {
@@ -46,7 +45,9 @@ public class WebsocketTest {
              * consentEvent.setAcrcId("some acrc");
              * send(session, consentEvent);
              */
+            var stockInquiry = new InventoryStockInquiry();
 
+            send(session, stockInquiry);
             /*
              * Assertions.assertEquals("User stu joined", MESSAGES.poll(10, TimeUnit.SECONDS));
              * session.getAsyncRemote().sendText("hello world");
