@@ -19,10 +19,12 @@ import org.slf4j.LoggerFactory;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import id.global.iris.models.irissubscription.ClientSessionClosed;
 import id.global.core.router.model.RequestWrapper;
 import id.global.core.router.model.UserSession;
 import id.global.core.router.service.BackendService;
 import id.global.core.router.service.WebsocketRegistry;
+import id.global.event.messaging.runtime.producer.AmqpProducer;
 
 @ServerEndpoint(value = "/v0/websocket", configurator = WsContainerConfigurator.class)
 @ApplicationScoped
@@ -35,6 +37,8 @@ public class SocketV1 {
     WebsocketRegistry websocketRegistry;
     @Inject
     BackendService backendService;
+    @Inject
+    AmqpProducer producer;
 
     @OnOpen
     public void onOpen(Session session, EndpointConfig conf) {
@@ -51,6 +55,10 @@ public class SocketV1 {
         log.info("closing user session: {}", userSession);
         if (userSession != null) {
             userSession.close();
+            final var userId = userSession.getUserId();
+            final var sessionId = userSession.getId();
+            final var clientSessionClosed = new ClientSessionClosed(sessionId, userId);
+            producer.send(clientSessionClosed);
         }
 
         //broadcast("User " + username + " left");
