@@ -19,12 +19,13 @@ import org.slf4j.LoggerFactory;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-import id.global.iris.models.irissubscription.ClientSessionClosed;
+import id.global.common.annotations.amqp.Message;
 import id.global.core.router.model.RequestWrapper;
 import id.global.core.router.model.UserSession;
 import id.global.core.router.service.BackendService;
 import id.global.core.router.service.WebsocketRegistry;
-import id.global.event.messaging.runtime.producer.AmqpProducer;
+import id.global.iris.amqp.parsers.ExchangeParser;
+import id.global.iris.models.irissubscription.ClientSessionClosed;
 
 @ServerEndpoint(value = "/v0/websocket", configurator = WsContainerConfigurator.class)
 @ApplicationScoped
@@ -37,8 +38,6 @@ public class SocketV1 {
     WebsocketRegistry websocketRegistry;
     @Inject
     BackendService backendService;
-    @Inject
-    AmqpProducer producer;
 
     @OnOpen
     public void onOpen(Session session, EndpointConfig conf) {
@@ -46,29 +45,27 @@ public class SocketV1 {
         Map<String, List<String>> headers = (Map<String, List<String>>) conf.getUserProperties().remove("headers");
         var userSession = websocketRegistry.startSession(session, headers);
         conf.getUserProperties().put("user-session", userSession);
-        //userSession.sendMessageRaw("hello from server");
     }
 
     @OnClose
     public void onClose(Session session, CloseReason reason) {
         var userSession = websocketRegistry.removeSocket(session.getId());
-        log.info("closing user session: {}", userSession);
+        log.info("closing user session: {}, reason: {}", userSession, reason.getReasonPhrase());
         if (userSession != null) {
             userSession.close();
             final var userId = userSession.getUserId();
             final var sessionId = userSession.getId();
             final var clientSessionClosed = new ClientSessionClosed(sessionId, userId);
-            producer.send(clientSessionClosed);
+            final var messageAnnotation = clientSessionClosed.getClass().getAnnotation(Message.class);
+            final var name = ExchangeParser.getFromAnnotationClass(messageAnnotation);
+            final var msg = new RequestWrapper(name, null, objectMapper.valueToTree(clientSessionClosed));
+            sendToSubscription(userSession, msg);
         }
-
-        //broadcast("User " + username + " left");
     }
 
     @OnError
     public void onError(Session session, Throwable throwable) {
-        //sessions.remove(username);
-        //broadcast("User " + username + " left on error: " + throwable);
-        log.info("on error happened", throwable);
+        log.warn("on error happened", throwable);
         onClose(session, new CloseReason(CloseReason.CloseCodes.CLOSED_ABNORMALLY, "error " + throwable.getMessage()));
     }
 
@@ -112,5 +109,11 @@ public class SocketV1 {
         var message = session.createBackendRequest(requestWrapper);
 
         backendService.sendToBackend(requestWrapper.event(), message);
+    }
+
+    private void sendToSubscription(UserSession session, RequestWrapper requestWrapper) {
+        var message = session.createBackendRequest(requestWrapper);
+
+        backendService.sendToSubscription(requestWrapper.event(), message);
     }
 }

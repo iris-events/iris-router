@@ -16,9 +16,8 @@ public class ValidationTest {
     ValidationService validationService;
 
     @Test
-    public void testDelivery() throws Exception {
+    public void testDelivery() {
         validationService.getSchemas();
-        ;
     }
 
 }
