@@ -65,17 +65,6 @@
             <groupId>io.quarkus</groupId>
             <artifactId>quarkus-grpc</artifactId>
         </dependency>
-
-        <dependency>
-            <groupId>io.apicurio</groupId>
-            <artifactId>apicurio-data-models</artifactId>
-            <version>${version.apicurio-data-models}</version>
-        </dependency>
-        <dependency>
-            <groupId>io.apicurio</groupId>
-            <artifactId>apicurio-registry-client</artifactId>
-            <version>${version.apicurio-registry-client}</version>
-        </dependency>
         <dependency>
             <groupId>io.envoyproxy.controlplane</groupId>
             <artifactId>api</artifactId>
