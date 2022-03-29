@@ -25,7 +25,7 @@ import id.global.core.router.model.UserSession;
 import id.global.core.router.service.BackendService;
 import id.global.core.router.service.WebsocketRegistry;
 import id.global.iris.amqp.parsers.ExchangeParser;
-import id.global.iris.models.irissubscription.ClientSessionClosed;
+import id.global.iris.irissubscription.SessionClosed;
 
 @ServerEndpoint(value = "/v0/websocket", configurator = WsContainerConfigurator.class)
 @ApplicationScoped
@@ -55,10 +55,10 @@ public class SocketV1 {
             userSession.close();
             final var userId = userSession.getUserId();
             final var sessionId = userSession.getId();
-            final var clientSessionClosed = new ClientSessionClosed(sessionId, userId);
-            final var messageAnnotation = clientSessionClosed.getClass().getAnnotation(Message.class);
+            final var sessionClosed = new SessionClosed(sessionId, userId);
+            final var messageAnnotation = sessionClosed.getClass().getAnnotation(Message.class);
             final var name = ExchangeParser.getFromAnnotationClass(messageAnnotation);
-            final var msg = new RequestWrapper(name, null, objectMapper.valueToTree(clientSessionClosed));
+            final var msg = new RequestWrapper(name, null, objectMapper.valueToTree(sessionClosed));
             sendToBackend(userSession, msg);
         }
     }
@@ -86,13 +86,13 @@ public class SocketV1 {
                 session.getAsyncRemote().sendText("{\"event\": \"error\", \"payload\":\"'payload' missing\" }");
             }
             var userSession = websocketRegistry.getSession(session.getId());
-            if ("subscribe".equals(msg.event())) {
+            if ("authenticate".equals(msg.event())) {
                 log.info("we need to handle logging in");
-                if (websocketRegistry.subscribe(userSession, msg)) {
-                    userSession.sendMessageRaw("subscribed");
+                if (websocketRegistry.authenticate(userSession, msg)) {
+                    userSession.sendMessageRaw("authenticated");
                     //session.sendMessage(requestMessage.getClientTraceId(), "subscribed", null, "{\"success\": true}"
                 } else {
-                    userSession.sendMessageRaw("subscribe failed");
+                    userSession.sendMessageRaw("authentication failed");
                 }
                 return;
             }

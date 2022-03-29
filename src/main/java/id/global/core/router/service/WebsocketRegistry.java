@@ -18,9 +18,9 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import id.global.core.router.client.AuthClient;
 import id.global.core.router.model.AmpqMessage;
+import id.global.core.router.model.Authenticate;
 import id.global.core.router.model.RequestWrapper;
 import id.global.core.router.model.ResponseHandler;
-import id.global.core.router.model.Subscribe;
 import id.global.core.router.model.UserSession;
 import id.global.core.router.model.WSResponseHandler;
 
@@ -154,13 +154,12 @@ public class WebsocketRegistry {
      * }
      */
 
-    public boolean subscribe(UserSession userSession, RequestWrapper requestMessage) {
-        Subscribe subscribe = objectMapper.convertValue(requestMessage.payload(), Subscribe.class);
-        LOGGER.info("subscribe info: {}", subscribe);
-        //userSession.init(subscribe.getDeviceId(), subscribe.getApplication(), subscribe.isHeartbeat());
+    public boolean authenticate(UserSession userSession, RequestWrapper requestMessage) {
+        Authenticate authenticate = objectMapper.convertValue(requestMessage.payload(), Authenticate.class);
+        //userSession.init(authenticate.getDeviceId(), authenticate.getApplication(), authenticate.isHeartbeat());
         LOGGER.warn("token is null");
-        if (subscribe.token() != null) {
-            return login(userSession, subscribe.token());
+        if (authenticate.token() != null) {
+            return login(userSession, authenticate.token());
         }
         return false;
     }

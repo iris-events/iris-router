@@ -19,7 +19,7 @@
     </scm>
 
     <properties>
-        <globalid-common.version>1.1.8</globalid-common.version>
+        <version.globalid-common>1.1.8</version.globalid-common>
         <version.iris-subscription-models>1.0.0-SNAPSHOT</version.iris-subscription-models>
         <version.iris-asyncapi>1.1.6</version.iris-asyncapi>
         <version.quarkus-rabbitmq-client>0.5.0.Final</version.quarkus-rabbitmq-client>
@@ -31,7 +31,7 @@
         <dependency>
             <groupId>id.global.common</groupId>
             <artifactId>globalid-common</artifactId>
-            <version>${globalid-common.version}</version>
+            <version>${version.globalid-common}</version>
         </dependency>
         <dependency>
             <groupId>id.global.iris</groupId>
@@ -39,7 +39,7 @@
             <version>${version.iris-asyncapi}</version>
         </dependency>
         <dependency>
-            <groupId>id.global.iris.models</groupId>
+            <groupId>id.global.iris</groupId>
             <artifactId>iris-subscription-models</artifactId>
             <version>${version.iris-subscription-models}</version>
         </dependency>
@@ -86,7 +86,6 @@
 
     <build>
         <plugins>
-
             <plugin>
                 <artifactId>maven-compiler-plugin</artifactId>
                 <configuration>
