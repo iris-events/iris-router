@@ -59,7 +59,7 @@ public class SocketV1 {
             final var messageAnnotation = clientSessionClosed.getClass().getAnnotation(Message.class);
             final var name = ExchangeParser.getFromAnnotationClass(messageAnnotation);
             final var msg = new RequestWrapper(name, null, objectMapper.valueToTree(clientSessionClosed));
-            sendToSubscription(userSession, msg);
+            sendToBackend(userSession, msg);
         }
     }
 
@@ -109,11 +109,5 @@ public class SocketV1 {
         var message = session.createBackendRequest(requestWrapper);
 
         backendService.sendToBackend(requestWrapper.event(), message);
-    }
-
-    private void sendToSubscription(UserSession session, RequestWrapper requestWrapper) {
-        var message = session.createBackendRequest(requestWrapper);
-
-        backendService.sendToSubscription(requestWrapper.event(), message);
     }
 }
