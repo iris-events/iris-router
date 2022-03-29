@@ -14,6 +14,8 @@ import com.rabbitmq.client.Channel;
 import com.rabbitmq.client.ConfirmListener;
 import com.rabbitmq.client.Connection;
 
+import id.global.common.iris.Exchanges;
+import id.global.common.iris.Queues;
 import id.global.core.router.model.AmpqMessage;
 import io.quarkiverse.rabbitmqclient.RabbitMQClient;
 import io.quarkus.runtime.StartupEvent;
@@ -24,6 +26,9 @@ import io.quarkus.runtime.StartupEvent;
 @ApplicationScoped
 public class BackendService {
     private static final Logger log = LoggerFactory.getLogger(BackendService.class);
+    public static final String FRONTEND_EXCHANGE = Exchanges.FRONTEND.getValue();
+    public static final String SUBSCRIPTION_QUEUE = Queues.SUBSCRIPTION.getValue();
+    public static final String SUBSCRIPTION_EXCHANGE = Exchanges.SUBSCRIPTION.getValue();
     private final WebsocketRegistry websocketRegistry;
     @Inject
     RabbitMQClient rabbitMQClient;
@@ -61,16 +66,21 @@ public class BackendService {
     }
 
     public void sendToBackend(String eventType, AmpqMessage message) {
-        //final String routingKey = dataType + "." + version;
+        sendMessage(message, FRONTEND_EXCHANGE, eventType);
+    }
+
+    public void sendToSubscription(String eventType, AmpqMessage message) {
+        sendMessage(message, SUBSCRIPTION_EXCHANGE, eventType);
+    }
+
+    private void sendMessage(final AmpqMessage message, final String frontendExchange, final String eventType) {
         websocketRegistry.registerRequest(message);
 
         try {
-            log.info("publishing message to 'frontend' - {}", eventType);
-            channel.basicPublish("frontend", eventType, message.properties(), message.body());
+            log.info("publishing message to '{}' - {}", frontendExchange, eventType);
+            channel.basicPublish(frontendExchange, eventType, message.properties(), message.body());
         } catch (IOException e) {
-
             log.error("Could not send message", e);
         }
-
     }
 }

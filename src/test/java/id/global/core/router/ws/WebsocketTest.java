@@ -30,7 +30,6 @@ public class WebsocketTest {
 
     private static final LinkedBlockingDeque<String> MESSAGES = new LinkedBlockingDeque<>();
 
-    //@TestHTTPResource("/chat/stu")
     @TestHTTPResource("/v0/websocket")
     URI uri;
 

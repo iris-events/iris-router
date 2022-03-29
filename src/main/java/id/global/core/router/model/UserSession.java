@@ -40,7 +40,6 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.rabbitmq.client.AMQP;
 
-import id.global.common.headers.amqp.MessagingHeaders;
 import id.global.core.router.consumer.AbstractWebSocketConsumer;
 
 /**
