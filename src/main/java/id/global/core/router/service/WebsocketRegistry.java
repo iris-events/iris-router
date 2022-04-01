@@ -129,7 +129,16 @@ public class WebsocketRegistry {
     @Inject
     AuthClient authClient;
 
-    private boolean login(UserSession userSession, String authToken) {
+    public void updateUserId(String oldUserId, String newUserId) {
+        LOGGER.info("updating identity for user: {}, --> {}", oldUserId, newUserId);
+        Set<UserSession> sessions = users.computeIfAbsent(newUserId, s -> new CopyOnWriteArraySet<>());
+        Set<UserSession> oldSessions = users.remove(oldUserId);
+        if (oldSessions != null) {
+            sessions.addAll(oldSessions);
+        }
+    }
+
+    public boolean login(UserSession userSession, String authToken) {
         LOGGER.info("checking token: {}", authToken);
         var jwtToken = authClient.checkToken(authToken);
         if (jwtToken != null) {
@@ -153,25 +162,5 @@ public class WebsocketRegistry {
      * return ret;
      * }
      */
-
-    public boolean subscribe(UserSession userSession, RequestWrapper requestMessage) {
-        Subscribe subscribe = objectMapper.convertValue(requestMessage.payload(), Subscribe.class);
-        LOGGER.info("subscribe info: {}", subscribe);
-        //userSession.init(subscribe.getDeviceId(), subscribe.getApplication(), subscribe.isHeartbeat());
-        LOGGER.warn("token is null");
-        if (subscribe.token() != null) {
-            return login(userSession, subscribe.token());
-        }
-        return false;
-    }
-
-    public void updateUserId(String oldUserId, String newUserId) {
-        LOGGER.info("updating identity for user: {}, --> {}", oldUserId, newUserId);
-        Set<UserSession> sessions = users.computeIfAbsent(newUserId, s -> new CopyOnWriteArraySet<>());
-        Set<UserSession> oldSessions = users.remove(oldUserId);
-        if (oldSessions != null) {
-            sessions.addAll(oldSessions);
-        }
-    }
 
 }
