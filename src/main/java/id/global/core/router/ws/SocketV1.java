@@ -111,7 +111,8 @@ public class SocketV1 {
                 return;
             } else {
                 final var userAuthenticated = new UserAuthenticated(userSession.getUserId());
-                sendIrisEventToBackend(userSession, clientTraceId, userAuthenticated);
+                // TODO: do not emit yet, we need to declare queue first
+                // sendIrisEventToBackend(userSession, clientTraceId, userAuthenticated);
             }
         }
 
