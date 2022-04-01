@@ -20,12 +20,14 @@ import org.slf4j.LoggerFactory;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import id.global.common.annotations.amqp.Message;
+import id.global.core.router.events.UserAuthenticated;
 import id.global.core.router.model.RequestWrapper;
+import id.global.core.router.model.Subscribe;
 import id.global.core.router.model.UserSession;
 import id.global.core.router.service.BackendService;
 import id.global.core.router.service.WebsocketRegistry;
 import id.global.iris.amqp.parsers.ExchangeParser;
-import id.global.iris.models.irissubscription.ClientSessionClosed;
+import id.global.iris.irissubscription.SessionClosed;
 
 @ServerEndpoint(value = "/v0/websocket", configurator = WsContainerConfigurator.class)
 @ApplicationScoped
@@ -55,11 +57,8 @@ public class SocketV1 {
             userSession.close();
             final var userId = userSession.getUserId();
             final var sessionId = userSession.getId();
-            final var clientSessionClosed = new ClientSessionClosed(sessionId, userId);
-            final var messageAnnotation = clientSessionClosed.getClass().getAnnotation(Message.class);
-            final var name = ExchangeParser.getFromAnnotationClass(messageAnnotation);
-            final var msg = new RequestWrapper(name, null, objectMapper.valueToTree(clientSessionClosed));
-            sendToBackend(userSession, msg);
+            final var sessionClosed = new SessionClosed(sessionId, userId);
+            sendIrisEventToBackend(userSession, null, sessionClosed);
         }
     }
 
@@ -80,20 +79,17 @@ public class SocketV1 {
             RequestWrapper msg = objectMapper.readerFor(RequestWrapper.class).readValue(message);
             log.info("message: {}", msg);
             if (msg.event() == null) {
-                session.getAsyncRemote().sendText("{\"event\": \"error\", \"payload\":\"'event' missing\" }");
+                session.getAsyncRemote().sendText(
+                        "{\"event\":\"error\",\"payload\":{\"errorType\":\"BAD_REQUEST\",\"code\":\"BAD_REQUEST\",\"message\":\"'event' missing\"}}");
             }
             if (msg.payload() == null) {
-                session.getAsyncRemote().sendText("{\"event\": \"error\", \"payload\":\"'payload' missing\" }");
+                session.getAsyncRemote().sendText(
+                        "{\"event\":\"error\",\"payload\":{\"errorType\":\"BAD_REQUEST\",\"code\":\"BAD_REQUEST\",\"message\":\"'payload' missing\"}}");
             }
             var userSession = websocketRegistry.getSession(session.getId());
             if ("subscribe".equals(msg.event())) {
-                log.info("we need to handle logging in");
-                if (websocketRegistry.subscribe(userSession, msg)) {
-                    userSession.sendMessageRaw("subscribed");
-                    //session.sendMessage(requestMessage.getClientTraceId(), "subscribed", null, "{\"success\": true}"
-                } else {
-                    userSession.sendMessageRaw("subscribe failed");
-                }
+                final var subscribe = objectMapper.convertValue(msg.payload(), Subscribe.class);
+                subscribe(userSession, subscribe, msg.clientTraceId());
                 return;
             }
 
@@ -103,6 +99,41 @@ public class SocketV1 {
             session.getAsyncRemote().sendText("Could not read message" + e.getMessage());
         }
 
+    }
+
+    private void subscribe(final UserSession userSession, final Subscribe subscribe, final String clientTraceId) {
+        if (subscribe.getToken() != null) {
+            final var loginSucceeded = websocketRegistry.login(userSession, subscribe.getToken());
+            if (!loginSucceeded) {
+                userSession.sendMessageRaw(
+                        "{\"event\":\"error\",\"payload\":{\"errorType\":\"AUTHORIZATION_FAILED\",\"code\":\"AUTHORIZATION_FAILED\",\"message\":\"authorization failed\"}}");
+                // when token is present, login must succeed
+                return;
+            } else {
+                final var userAuthenticated = new UserAuthenticated(userSession.getUserId());
+                sendIrisEventToBackend(userSession, clientTraceId, userAuthenticated);
+            }
+        }
+
+        subscribeResources(userSession, subscribe, clientTraceId);
+    }
+
+    private void subscribeResources(final UserSession userSession, final Subscribe subscribe, final String clientTraceId) {
+        final var resourceSubscriptions = subscribe.getResources();
+        if (resourceSubscriptions == null) {
+            return;
+        }
+
+        // create new subscription service specific event to omit token
+        final var subscribeResources = new id.global.iris.irissubscription.Subscribe(subscribe.getResources());
+        sendIrisEventToBackend(userSession, clientTraceId, subscribeResources);
+    }
+
+    private void sendIrisEventToBackend(final UserSession userSession, final String clientTraceId, final Object message) {
+        final var messageAnnotation = message.getClass().getAnnotation(Message.class);
+        final var name = ExchangeParser.getFromAnnotationClass(messageAnnotation);
+        final var msg = new RequestWrapper(name, clientTraceId, objectMapper.valueToTree(message));
+        sendToBackend(userSession, msg);
     }
 
     private void sendToBackend(UserSession session, RequestWrapper requestWrapper) {

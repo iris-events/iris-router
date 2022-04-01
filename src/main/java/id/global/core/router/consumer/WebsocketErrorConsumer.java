@@ -4,6 +4,7 @@ import java.util.List;
 
 import javax.enterprise.context.ApplicationScoped;
 
+import id.global.common.iris.Queues;
 import id.global.core.router.model.ResponseMessageType;
 
 @ApplicationScoped
@@ -11,7 +12,7 @@ public class WebsocketErrorConsumer extends AbstractWebSocketConsumer {
 
     @Override
     protected String getQueueName() {
-        return "error";
+        return Queues.ERROR.getValue();
     }
 
     @Override
