@@ -16,7 +16,7 @@ import org.slf4j.LoggerFactory;
 
 import com.rabbitmq.client.BuiltinExchangeType;
 
-import id.global.core.router.model.AmpqMessage;
+import id.global.core.router.model.AmqpMessage;
 import id.global.core.router.model.ResponseHandler;
 import id.global.core.router.model.ResponseMessageType;
 import id.global.core.router.service.RequestRegistry;
@@ -83,13 +83,13 @@ public abstract class AbstractWebSocketConsumer extends BaseConsumer {
     }
 
     //non rpc message, handle on websocket
-    protected void sendToSocket(AmpqMessage message) {
+    protected void sendToSocket(AmqpMessage message) {
         final var handlers = getResponseHandlers(message);
         final var responseMessageType = getSocketMessageType();
         handlers.forEach(handler -> handler.handle(responseMessageType, message));
     }
 
-    private List<ResponseHandler> getResponseHandlers(AmpqMessage message) {
+    private List<ResponseHandler> getResponseHandlers(AmqpMessage message) {
         List<ResponseHandler> handlers = new ArrayList<>();
         if (getSocketMessageType() == ResponseMessageType.BROADCAST) {
             handlers.add(websocketRegistry.getResponseHandler());
@@ -115,7 +115,7 @@ public abstract class AbstractWebSocketConsumer extends BaseConsumer {
     }
 
     @Override
-    public void onMessage(AmpqMessage message) {
+    public void onMessage(AmqpMessage message) {
         log.info("got websocket message: {}", message);
 
         final String router = message.routerId();

@@ -8,7 +8,7 @@ import static id.global.common.headers.amqp.MessagingHeaders.Message.USER_ID;
 
 import com.rabbitmq.client.AMQP;
 
-public record AmpqMessage(byte[] body, AMQP.BasicProperties properties, String eventType) {
+public record AmqpMessage(byte[] body, AMQP.BasicProperties properties, String eventType) {
 
     public String userId() {
         return getStringHeader(properties, USER_ID);

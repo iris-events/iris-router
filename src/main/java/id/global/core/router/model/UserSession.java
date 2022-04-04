@@ -111,7 +111,7 @@ public class UserSession {
 
     //actions
 
-    public void sendMessage(AmpqMessage message) {
+    public void sendMessage(AmqpMessage message) {
         var msg = convertResponse(message);
         sendMessageRaw(msg);
     }
@@ -250,7 +250,7 @@ public class UserSession {
         defaultMessageHeaders.put(ROUTER, AbstractWebSocketConsumer.routerId);
     }
 
-    public AmpqMessage createBackendRequest(RequestWrapper requestMessage) {
+    public AmqpMessage createBackendRequest(RequestWrapper requestMessage) {
 
         var eventType = requestMessage.event();
 
@@ -270,7 +270,7 @@ public class UserSession {
                 .timestamp(new Date())
                 .headers(headers)
                 .build();
-        return new AmpqMessage(writeValueAsBytes(requestMessage.payload()), messageProperties, eventType);
+        return new AmqpMessage(writeValueAsBytes(requestMessage.payload()), messageProperties, eventType);
 
     }
 
@@ -299,7 +299,7 @@ public class UserSession {
         }
     }
 
-    private String convertResponse(AmpqMessage message) {
+    private String convertResponse(AmqpMessage message) {
         try {
             StringWriter writer = new StringWriter();
             JsonGenerator jGenerator = objectMapper.getFactory()

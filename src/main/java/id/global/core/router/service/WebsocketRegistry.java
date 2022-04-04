@@ -17,10 +17,8 @@ import org.slf4j.LoggerFactory;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import id.global.core.router.client.AuthClient;
-import id.global.core.router.model.AmpqMessage;
-import id.global.core.router.model.RequestWrapper;
+import id.global.core.router.model.AmqpMessage;
 import id.global.core.router.model.ResponseHandler;
-import id.global.core.router.model.Subscribe;
 import id.global.core.router.model.UserSession;
 import id.global.core.router.model.WSResponseHandler;
 
@@ -104,7 +102,7 @@ public class WebsocketRegistry {
         return new UserSession(objectMapper, session, headers);
     }
 
-    public void registerRequest(AmpqMessage message) {
+    public void registerRequest(AmqpMessage message) {
 
         String dataType = message.eventType();
         if (NON_RPC_DATATYPES.contains(dataType)) {

@@ -18,7 +18,7 @@ import javax.enterprise.context.ApplicationScoped;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import id.global.core.router.model.AmpqMessage;
+import id.global.core.router.model.AmqpMessage;
 import id.global.core.router.model.BackendRequest;
 import id.global.core.router.model.ResponseHandler;
 import id.global.core.router.model.ResponseMessageType;
@@ -54,7 +54,7 @@ public class RequestRegistry {
         return requestId != null && requests.containsKey(requestId);
     }
 
-    public void publishResponse(ResponseMessageType messageType, AmpqMessage message) {
+    public void publishResponse(ResponseMessageType messageType, AmqpMessage message) {
         String correlationId = message.correlationId();
         BackendRequest request = requests.get(correlationId);
         if (request != null) {
@@ -98,7 +98,7 @@ public class RequestRegistry {
         });
     }
 
-    public void registerNewRequest(AmpqMessage message, ResponseHandler responseHandler) {
+    public void registerNewRequest(AmqpMessage message, ResponseHandler responseHandler) {
         Map<String, Object> properties = message.properties().getHeaders();
         String eventType = message.eventType();
         String ipAddress = (String) properties.get(IP_ADDRESS);
