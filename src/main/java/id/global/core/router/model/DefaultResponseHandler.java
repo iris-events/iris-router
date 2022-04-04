@@ -14,7 +14,7 @@ public abstract class DefaultResponseHandler implements ResponseHandler {
     protected abstract ObjectMapper getObjectMapper();
 
     @Override
-    public void handle(ResponseMessageType responseMessageType, AmpqMessage message) {
+    public void handle(ResponseMessageType responseMessageType, AmqpMessage message) {
         if (responseMessageType != ResponseMessageType.ERROR) {
             onSuccess(responseMessageType, message);
         } else {
@@ -23,9 +23,9 @@ public abstract class DefaultResponseHandler implements ResponseHandler {
         }
     }
 
-    protected abstract void onFailure(final AmpqMessage message);
+    protected abstract void onFailure(final AmqpMessage message);
 
-    protected abstract void onSuccess(ResponseMessageType responseMessageType, AmpqMessage message);
+    protected abstract void onSuccess(ResponseMessageType responseMessageType, AmqpMessage message);
 
     /*
      * protected abstract void onError(ResponseMessageType responseMessageType, String requestId, String userId, String

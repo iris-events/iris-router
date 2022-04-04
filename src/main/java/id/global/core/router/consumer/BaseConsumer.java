@@ -19,7 +19,7 @@ import com.rabbitmq.client.Connection;
 import com.rabbitmq.client.DefaultConsumer;
 import com.rabbitmq.client.Envelope;
 
-import id.global.core.router.model.AmpqMessage;
+import id.global.core.router.model.AmqpMessage;
 import id.global.core.router.model.ResponseMessageType;
 import io.quarkiverse.rabbitmqclient.RabbitMQClient;
 import io.quarkus.runtime.StartupEvent;
@@ -100,7 +100,7 @@ public abstract class BaseConsumer {
                         throw new RuntimeException("Required header '" + EVENT_TYPE + "' missing on message");
                     }
 
-                    AmpqMessage m = new AmpqMessage(body, properties, event.toString());
+                    AmqpMessage m = new AmqpMessage(body, properties, event.toString());
                     log.info("Received: consumerTag: {}, body: {}", consumerTag, new String(body, StandardCharsets.UTF_8));
                     try {
                         onMessage(m);
@@ -125,5 +125,5 @@ public abstract class BaseConsumer {
         return "dead." + name;
     }
 
-    public abstract void onMessage(AmpqMessage message);
+    public abstract void onMessage(AmqpMessage message);
 }

@@ -29,7 +29,7 @@ public class WSResponseHandler extends DefaultResponseHandler {
     }
 
     @Override
-    protected void onSuccess(ResponseMessageType responseMessageType, AmpqMessage message) {
+    protected void onSuccess(ResponseMessageType responseMessageType, AmqpMessage message) {
         if (responseMessageType == ResponseMessageType.RPC) {
             sendRPCMessage(message);
         } else if (responseMessageType == ResponseMessageType.SESSION) {
@@ -42,12 +42,12 @@ public class WSResponseHandler extends DefaultResponseHandler {
     }
 
     @Override
-    protected void onFailure(final AmpqMessage message) {
+    protected void onFailure(final AmqpMessage message) {
         // always send error message only to current active session
         sendToSession(message);
     }
 
-    private void sendToSession(AmpqMessage message) {
+    private void sendToSession(AmqpMessage message) {
         String sessionId = message.sessionId();
         if (sessionId == null || sessionId.isBlank()) {
             LOGGER.warn("Could not send session message with sessionId: {}, requestId: {}, userId: {}, message: {}", sessionId,
@@ -67,7 +67,7 @@ public class WSResponseHandler extends DefaultResponseHandler {
 
     }
 
-    private void sendRPCMessage(AmpqMessage message) {
+    private void sendRPCMessage(AmqpMessage message) {
         String userId = message.userId();
         Set<? extends UserSession> allSocketOfTheUser = websocketRegistry.getAllUserSessions(userId);
         if (allSocketOfTheUser == null || allSocketOfTheUser.isEmpty()) {
@@ -82,7 +82,7 @@ public class WSResponseHandler extends DefaultResponseHandler {
         }
     }
 
-    private void sendBroadcastMessage(AmpqMessage message) {
+    private void sendBroadcastMessage(AmqpMessage message) {
         for (UserSession userSession : websocketRegistry.getAllSessions()) {
             userSession.sendMessage(message);
         }
