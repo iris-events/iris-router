@@ -1,17 +1,17 @@
 package id.global.core.router.model;
 
-import static id.global.common.headers.amqp.MessagingHeaders.Message.ANONYMOUS_ID;
-import static id.global.common.headers.amqp.MessagingHeaders.Message.CLIENT_TRACE_ID;
-import static id.global.common.headers.amqp.MessagingHeaders.Message.DEVICE;
-import static id.global.common.headers.amqp.MessagingHeaders.Message.EVENT_TYPE;
-import static id.global.common.headers.amqp.MessagingHeaders.Message.IP_ADDRESS;
-import static id.global.common.headers.amqp.MessagingHeaders.Message.JWT;
-import static id.global.common.headers.amqp.MessagingHeaders.Message.PROXY_IP_ADDRESS;
-import static id.global.common.headers.amqp.MessagingHeaders.Message.REQUEST_VIA;
-import static id.global.common.headers.amqp.MessagingHeaders.Message.ROUTER;
-import static id.global.common.headers.amqp.MessagingHeaders.Message.SESSION_ID;
-import static id.global.common.headers.amqp.MessagingHeaders.Message.USER_AGENT;
-import static id.global.common.headers.amqp.MessagingHeaders.Message.USER_ID;
+import static id.global.common.constants.iris.MessagingHeaders.Message.ANONYMOUS_ID;
+import static id.global.common.constants.iris.MessagingHeaders.Message.CLIENT_TRACE_ID;
+import static id.global.common.constants.iris.MessagingHeaders.Message.DEVICE;
+import static id.global.common.constants.iris.MessagingHeaders.Message.EVENT_TYPE;
+import static id.global.common.constants.iris.MessagingHeaders.Message.IP_ADDRESS;
+import static id.global.common.constants.iris.MessagingHeaders.Message.JWT;
+import static id.global.common.constants.iris.MessagingHeaders.Message.PROXY_IP_ADDRESS;
+import static id.global.common.constants.iris.MessagingHeaders.Message.REQUEST_VIA;
+import static id.global.common.constants.iris.MessagingHeaders.Message.ROUTER;
+import static id.global.common.constants.iris.MessagingHeaders.Message.SESSION_ID;
+import static id.global.common.constants.iris.MessagingHeaders.Message.USER_AGENT;
+import static id.global.common.constants.iris.MessagingHeaders.Message.USER_ID;
 
 import java.io.IOException;
 import java.io.StringWriter;
