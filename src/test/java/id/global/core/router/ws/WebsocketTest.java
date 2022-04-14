@@ -19,7 +19,7 @@ import org.junit.jupiter.api.Test;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
-import id.global.common.annotations.amqp.Message;
+import id.global.common.annotations.iris.Message;
 import id.global.core.router.model.RequestWrapper;
 import io.quarkus.test.common.http.TestHTTPResource;
 import io.quarkus.test.junit.QuarkusTest;

@@ -1,10 +1,10 @@
 package id.global.core.router.model;
 
-import static id.global.common.headers.amqp.MessagingHeaders.Message.CLIENT_TRACE_ID;
-import static id.global.common.headers.amqp.MessagingHeaders.Message.CURRENT_SERVICE_ID;
-import static id.global.common.headers.amqp.MessagingHeaders.Message.ROUTER;
-import static id.global.common.headers.amqp.MessagingHeaders.Message.SESSION_ID;
-import static id.global.common.headers.amqp.MessagingHeaders.Message.USER_ID;
+import static id.global.common.constants.iris.MessagingHeaders.Message.CLIENT_TRACE_ID;
+import static id.global.common.constants.iris.MessagingHeaders.Message.CURRENT_SERVICE_ID;
+import static id.global.common.constants.iris.MessagingHeaders.Message.ROUTER;
+import static id.global.common.constants.iris.MessagingHeaders.Message.SESSION_ID;
+import static id.global.common.constants.iris.MessagingHeaders.Message.USER_ID;
 
 import com.rabbitmq.client.AMQP;
 

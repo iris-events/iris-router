@@ -1,6 +1,6 @@
 package id.global.core.router.consumer;
 
-import static id.global.common.headers.amqp.MessagingHeaders.Message.EVENT_TYPE;
+import static id.global.common.constants.iris.MessagingHeaders.Message.EVENT_TYPE;
 
 import java.io.IOException;
 import java.io.UncheckedIOException;

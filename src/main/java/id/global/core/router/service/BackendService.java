@@ -14,7 +14,7 @@ import com.rabbitmq.client.Channel;
 import com.rabbitmq.client.ConfirmListener;
 import com.rabbitmq.client.Connection;
 
-import id.global.common.iris.Exchanges;
+import id.global.common.constants.iris.Exchanges;
 import id.global.core.router.model.AmqpMessage;
 import io.quarkiverse.rabbitmqclient.RabbitMQClient;
 import io.quarkus.runtime.StartupEvent;

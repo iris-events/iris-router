@@ -19,7 +19,7 @@ import org.slf4j.LoggerFactory;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-import id.global.common.annotations.amqp.Message;
+import id.global.common.annotations.iris.Message;
 import id.global.core.router.events.UserAuthenticated;
 import id.global.core.router.model.RequestWrapper;
 import id.global.core.router.model.Subscribe;
