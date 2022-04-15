@@ -9,12 +9,12 @@
     </parent>
     <groupId>id.global.iris</groupId>
     <artifactId>router</artifactId>
-    <version>1.0.6</version>
+    <version>1.0.7-SNAPSHOT</version>
     <scm>
         <connection>scm:git:git@github.com:globalid/core-router.git</connection>
         <developerConnection>scm:git:git@github.com:globalid/core-router.git</developerConnection>
         <url>https://github.com/globalid/core-router</url>
-        <tag>v1.0.6</tag>
+        <tag>HEAD</tag>
     </scm>
 
     <properties>
