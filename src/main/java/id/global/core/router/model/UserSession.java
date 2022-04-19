@@ -47,6 +47,12 @@ import id.global.core.router.consumer.AbstractWebSocketConsumer;
  */
 public class UserSession {
     private static final Logger log = LoggerFactory.getLogger(UserSession.class);
+
+    private static final String EVENT_FIELD = "event";
+    private static final String PAYLOAD_FIELD = "payload";
+    private static final String CLIENT_TRACE_ID_FIELD = "clientTraceId";
+    private static final String SUBSCRIPTION_ID_FIELD = "subscriptionId";
+
     private final String anonymousUserId;
 
     static String trimMessage(String message) {
@@ -302,15 +308,17 @@ public class UserSession {
     private String convertResponse(AmqpMessage message) {
         try {
             StringWriter writer = new StringWriter();
-            JsonGenerator jGenerator = objectMapper.getFactory()
-                    .createGenerator(writer);
+            JsonGenerator jGenerator = objectMapper.getFactory().createGenerator(writer);
             jGenerator.writeStartObject();
-            jGenerator.writeStringField("event", message.eventType());
+            jGenerator.writeStringField(EVENT_FIELD, message.eventType());
             if (message.clientTraceId() != null) {
-                jGenerator.writeStringField(CLIENT_TRACE_ID, message.clientTraceId());
+                jGenerator.writeStringField(CLIENT_TRACE_ID_FIELD, message.clientTraceId());
+            }
+            if (message.subscriptionId() != null) {
+                jGenerator.writeStringField(SUBSCRIPTION_ID_FIELD, message.subscriptionId());
             }
             if (message.body() != null) {
-                jGenerator.writeFieldName("payload");
+                jGenerator.writeFieldName(PAYLOAD_FIELD);
                 jGenerator.writeRawValue(new String(message.body(), StandardCharsets.UTF_8));
                 jGenerator.writeEndObject();
             }
