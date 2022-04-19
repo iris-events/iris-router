@@ -4,6 +4,7 @@ import static id.global.common.constants.iris.MessagingHeaders.Message.CLIENT_TR
 import static id.global.common.constants.iris.MessagingHeaders.Message.CURRENT_SERVICE_ID;
 import static id.global.common.constants.iris.MessagingHeaders.Message.ROUTER;
 import static id.global.common.constants.iris.MessagingHeaders.Message.SESSION_ID;
+import static id.global.common.constants.iris.MessagingHeaders.Message.SUBSCRIPTION_ID;
 import static id.global.common.constants.iris.MessagingHeaders.Message.USER_ID;
 
 import com.rabbitmq.client.AMQP;
@@ -32,6 +33,10 @@ public record AmqpMessage(byte[] body, AMQP.BasicProperties properties, String e
 
     public String routerId() {
         return getStringHeader(properties, ROUTER);
+    }
+
+    public String subscriptionId() {
+        return getStringHeader(properties, SUBSCRIPTION_ID);
     }
 
     private String getStringHeader(AMQP.BasicProperties props, String name) {
