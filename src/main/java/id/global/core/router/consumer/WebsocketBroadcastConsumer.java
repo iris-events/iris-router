@@ -4,6 +4,7 @@ import java.util.List;
 
 import javax.enterprise.context.ApplicationScoped;
 
+import id.global.common.constants.iris.Exchanges;
 import id.global.core.router.model.ResponseMessageType;
 
 @ApplicationScoped
@@ -11,7 +12,7 @@ public class WebsocketBroadcastConsumer extends AbstractWebSocketConsumer {
 
     @Override
     protected String getQueueName() {
-        return "broadcast";
+        return Exchanges.BROADCAST.getValue();
     }
 
     @Override

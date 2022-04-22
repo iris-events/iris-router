@@ -5,6 +5,7 @@ import javax.inject.Inject;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
+import id.global.common.constants.iris.Exchanges;
 import io.quarkus.test.junit.QuarkusTest;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.rabbitmq.RabbitMQClient;
@@ -17,9 +18,14 @@ public class WebsocketQueueTests {
     RabbitMQClient client;
 
     @Test
-    public void testDelivery() throws Exception {
-        client.basicPublish("user", "#.say-hello", null, Buffer.buffer("test"));
-        //client.basicPublish("websocket", "#.websocket", null, Buffer.buffer("test"));
+    public void testDelivery() {
+        client.start(asyncResult -> {
+            if (asyncResult.succeeded()) {
+                client.basicPublish(Exchanges.USER.getValue(), "say-hello.user", null, Buffer.buffer("test"));
+            } else {
+                throw new RuntimeException(asyncResult.cause());
+            }
+        });
     }
 
 }
