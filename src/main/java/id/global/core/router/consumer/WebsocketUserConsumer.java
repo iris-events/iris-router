@@ -4,14 +4,15 @@ import java.util.List;
 
 import javax.enterprise.context.ApplicationScoped;
 
+import id.global.common.constants.iris.Exchanges;
 import id.global.core.router.model.ResponseMessageType;
 
 @ApplicationScoped
-public class WebsocketConsumer extends AbstractWebSocketConsumer {
+public class WebsocketUserConsumer extends AbstractWebSocketConsumer {
 
     @Override
     protected String getQueueName() {
-        return "user";
+        return Exchanges.USER.getValue();
     }
 
     @Override

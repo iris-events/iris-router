@@ -25,29 +25,21 @@ public abstract class BaseConsumer {
     @Inject
     RabbitMQClient client;
 
-    //protected Channel channel;
-
     public void onApplicationStart(@Observes StartupEvent event) {
-        createChanel();
         createQueues(getQueueName());
-
+        client.start(asyncResult -> {
+            if (asyncResult.succeeded()) {
+                log.info("RabbitMQ successfully connected for queue {}!", getQueueName());
+            } else {
+                final var rootCause = findRootCause(asyncResult.cause());
+                final var message = rootCause != null ? rootCause.getMessage() : "N/A";
+                log.error(String.format("Failed to connect to RabbitMQ for '%s' consumer. Cause: %s", getQueueName(), message),
+                        rootCause);
+            }
+        });
     }
 
-    private void createChanel() {
-        /*
-         * try {
-         * Connection connection = rabbitMQClient.connect(getNameSuffix(getQueueName(), "1.0"));
-         * // create a channel
-         * channel = connection.createChannel();
-         * } catch (IOException e) {
-         * throw new UncheckedIOException(e);
-         * }
-         */
-    }
-
-    protected void createQueues(String queueName) {
-
-    }
+    protected abstract void createQueues(String queueName);
 
     protected abstract String getQueueName();
 
@@ -55,79 +47,26 @@ public abstract class BaseConsumer {
 
     protected abstract List<String> getQueueRoles();
 
-    protected String getNameSuffix(String name, String version) {
-        StringBuilder stringBuffer = new StringBuilder()
-                .append("router")
-                .append(".")
-                .append(name);
+    public abstract void onMessage(AmqpMessage message);
 
-        if (version != null) {
-            stringBuffer.append(".").append(version);
-        }
-
-        return stringBuffer.toString();
+    protected String getNameSuffix(String name) {
+        return "router" + "." + name + "." + AbstractWebSocketConsumer.routerId;
     }
 
     protected void setListener(String queueName) {
-        setListener(queueName, 1, 0);
-    }
-
-    protected void setListener(String queueName, int concurrentConsumer, long sleep) {
         var options = new QueueOptions();
         options.setAutoAck(true);
         options.setMaxInternalQueueSize(50);
-        client.start()
-                .onSuccess(v -> {
-                    // At this point the exchange, queue and binding will have been declared even if the client connects to a new server
-                    client.basicConsumer(queueName, options, result -> {
-                        if (result.succeeded()) {
-                            RabbitMQConsumer mqConsumer = result.result();
-                            mqConsumer.handler(this::handleMessage);
-                            log.info("consumer started on '{}' --> {} --> {}", getQueueName(), getSocketMessageType(),
-                                    getQueueRoles());
-                        } else {
-                            log.error("error", result.cause());
 
-                        }
-
-                    });
-                })
-                .onFailure(ex -> {
-                    log.error("It went wrong: ", ex);
-                });
-
-        /*
-         * try {
-         * channel.basicConsume(queueName, true, new DefaultConsumer(channel) {
-         *
-         * @Override
-         * public void handleDelivery(String consumerTag, Envelope envelope, AMQP.BasicProperties properties,
-         * byte[] body) {
-         * // just print the received message.
-         * log.info("exchange: {}, queue: {}, routing key: {}, deliveryTag: {}", envelope.getExchange(), queueName,
-         * envelope.getRoutingKey(), envelope.getDeliveryTag());
-         * log.info("properties: {}", properties);
-         * Object event = properties.getHeaders().get(EVENT_TYPE);
-         * if (event == null) {
-         * throw new RuntimeException("Required header '" + EVENT_TYPE + "' missing on message");
-         * }
-         *
-         * AmpqMessage m = new AmpqMessage(body, properties, event.toString());
-         * log.info("Received: consumerTag: {}, body: {}", consumerTag, new String(body, StandardCharsets.UTF_8));
-         * try {
-         * onMessage(m);
-         * } catch (Exception e) {
-         * log.warn("Error handling message", e);
-         * }
-         *
-         * }
-         * });
-         * } catch (IOException e) {
-         * throw new UncheckedIOException(e);
-         * }
-         * log.info("consumer started on '{}' --> {} --> {}", getQueueName(), getSocketMessageType(), getQueueRoles());
-         */
-
+        client.basicConsumer(queueName, options, result -> {
+            if (result.succeeded()) {
+                RabbitMQConsumer mqConsumer = result.result();
+                mqConsumer.handler(this::handleMessage);
+                log.info("consumer started on '{}' --> {} --> {}", getQueueName(), getSocketMessageType(), getQueueRoles());
+            } else {
+                log.error("error", result.cause());
+            }
+        });
     }
 
     private void handleMessage(RabbitMQMessage message) {
@@ -153,13 +92,14 @@ public abstract class BaseConsumer {
         }
     }
 
-    protected String getThreadPrefix() {
-        return getClass().getSimpleName() + "-";
+    private static Throwable findRootCause(Throwable throwable) {
+        if (throwable == null) {
+            return null;
+        }
+        Throwable rootCause = throwable;
+        while (rootCause.getCause() != null && rootCause.getCause() != rootCause) {
+            rootCause = rootCause.getCause();
+        }
+        return rootCause;
     }
-
-    protected String getDeadPrefix(String name) {
-        return "dead." + name;
-    }
-
-    public abstract void onMessage(AmqpMessage message);
 }

@@ -31,59 +31,13 @@ public class BackendService {
     }
 
     void createChanel(@Observes StartupEvent event) {
-        try {
-
-            /*
-             * Connection connection = rabbitMQClient.connect("backend publisher");
-             *
-             * // create a channel
-             * channel = connection.createChannel();
-             * channel.addConfirmListener(new ConfirmListener() {
-             *
-             * @Override
-             * public void handleAck(long deliveryTag, boolean multiple) {
-             * log.info("ack");
-             * }
-             *
-             * @Override
-             * public void handleNack(long deliveryTag, boolean multiple) {
-             * log.info("nack");
-             * }
-             * });
-             * channel.addReturnListener((replyCode, replyText, exchange, rk, properties, body) -> {
-             * log.info("reply code {}, reply text {}, exchange {}, rk {}", replyCode, replyText, exchange, rk);
-             * });
-             */
-
-            client.start(asyncResult -> {
-                if (asyncResult.succeeded()) {
-                    log.info("RabbitMQ successfully connected!");
-                } else {
-                    log.info("Fail to connect to RabbitMQ {}", asyncResult.cause().getMessage());
-                }
-            });
-
-            /*
-             * client.addConnectionEstablishedCallback(promise -> {
-             * client.exchangeDeclare("exchange", "fanout", true, false)
-             * .compose(v -> {
-             * return client.queueDeclare("queue", false, true, true);
-             * })
-             * .compose(declareOk -> {
-             * return client.queueBind(declareOk.getQueue(), "exchange", "");
-             * })
-             * .onComplete(promise);
-             * });
-             */
-
-            /*
-             * channel.addReturnListener((replyCode, replyText, exchange, rk, properties, body) -> {
-             * log.info("reply code {}, reply text {}, exchange {}, rk {}", replyCode, replyText, exchange, rk);
-             * });
-             */
-        } catch (RuntimeException e) {
-            throw e;
-        }
+        client.start(asyncResult -> {
+            if (asyncResult.succeeded()) {
+                log.info("RabbitMQ successfully connected!");
+            } else {
+                log.info("Fail to connect to RabbitMQ {}", asyncResult.cause().getMessage());
+            }
+        });
     }
 
     public void sendToBackend(String eventType, AmqpMessage message) {

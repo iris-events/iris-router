@@ -10,8 +10,6 @@ import javax.inject.Inject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.rabbitmq.client.BuiltinExchangeType;
-
 import id.global.core.router.model.AmqpMessage;
 import id.global.core.router.model.ResponseHandler;
 import id.global.core.router.model.ResponseMessageType;
@@ -46,64 +44,24 @@ public abstract class AbstractWebSocketConsumer extends BaseConsumer {
         return message;
     }
 
-    /*
-     * @Override
-     * protected void createQueues(String queueName) {
-     * 
-     * final String queueWithSuffix = getNameSuffix(queueName, routerId);
-     * //ConsumerForMessage consumerForMessage = getConsumerForMessage();
-     * 
-     * Map<String, Object> args = new HashMap<>();
-     * args.put("x-message-ttl", 5000);
-     * 
-     * //super.prefetchCount = consumerForMessage.consumerPrefetch();
-     * 
-     * try {
-     * 
-     * // declare exchanges and queues
-     * channel.queueDeclare(queueWithSuffix, true, false, true, args);
-     * channel.exchangeDeclare(queueName, BuiltinExchangeType.TOPIC, true, false, null);
-     * queueBind(queueWithSuffix, queueName, "#." + queueName);
-     * queueBind(queueWithSuffix, queueName, getRoutingKey(queueName));
-     * 
-     * } catch (IOException e) {
-     * throw new UncheckedIOException(e);
-     * }
-     * setListener(queueWithSuffix);
-     * }
-     */
     @Override
     protected void createQueues(String queueName) {
-
-        final String queueWithSuffix = getNameSuffix(queueName, routerId);
-
-        JsonObject args = new JsonObject();
+        final String queueWithSuffix = getNameSuffix(queueName);
+        final var args = new JsonObject();
         args.put("x-message-ttl", 5000);
-
-        //super.prefetchCount = consumerForMessage.consumerPrefetch();
-
         client.addConnectionEstablishedCallback(promise -> {
-
-            client.exchangeDeclare(queueName, BuiltinExchangeType.TOPIC.getType(), true, false)
-                    .compose(v -> client.queueDeclare(queueWithSuffix, true, false, true, args))
+            client.queueDeclare(queueWithSuffix, true, false, true, args)
                     .compose(dok -> queueBind(queueWithSuffix, queueName, "#." + queueName))
                     .compose(dok -> queueBind(queueWithSuffix, queueName, getRoutingKey(queueName)))
                     .onSuccess(unused -> setListener(queueWithSuffix))
                     .onComplete(promise);
         });
-
     }
 
     private Future<Void> queueBind(String queue, String exchange, String routingKey) {
         log.info("binding: '{}' --> '{}' with routing key: '{}'", queue, exchange, routingKey);
         return client.queueBind(queue, exchange, routingKey);
     }
-    /*
-     * private void queueBind(String queue, String exchange, String routingKey) throws IOException {
-     * channel.queueBind(queue, exchange, routingKey);
-     * log.info("binding: '{}' --> '{}' with routing key: '{}'", queue, exchange, routingKey);
-     * }
-     */
 
     protected String getRoutingKey(String queueName) {
         return "#." + queueName + "." + routerId;
