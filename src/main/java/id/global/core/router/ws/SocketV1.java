@@ -115,6 +115,9 @@ public class SocketV1 {
                 // sendIrisEventToBackend(userSession, clientTraceId, userAuthenticated);
             }
         }
+        if (subscribe.getHeartbeat() != null) {
+            userSession.setSendHeartbeat(subscribe.getHeartbeat());
+        }
 
         subscribeResources(userSession, subscribe, clientTraceId);
     }

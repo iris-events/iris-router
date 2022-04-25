@@ -41,6 +41,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.rabbitmq.client.AMQP;
 
 import id.global.core.router.consumer.AbstractWebSocketConsumer;
+import id.global.core.router.events.RouterEvent;
 import io.vertx.core.buffer.Buffer;
 
 /**
@@ -89,7 +90,7 @@ public class UserSession {
     private Map<String, Object> defaultMessageHeaders;
     private String clientIp;
     private String clientDeviceId = null;
-    private boolean sendHeartbeat;
+    private boolean sendHeartbeat = false;
     private String userAgent;
 
     public UserSession(ObjectMapper objectMapper, Session session, Map<String, List<String>> headers) {
@@ -121,6 +122,30 @@ public class UserSession {
     public void sendMessage(AmqpMessage message) {
         var msg = convertResponse(message);
         sendMessageRaw(msg);
+    }
+
+    public void sendEvent(RouterEvent event, String clientTraceId) {
+
+        try {
+            StringWriter writer = new StringWriter();
+            JsonGenerator generator = objectMapper.getFactory().createGenerator(writer);
+            generator.writeStartObject();
+            generator.writeStringField(EVENT_FIELD, event.getName());
+            if (clientTraceId != null) {
+                generator.writeStringField(CLIENT_TRACE_ID_FIELD, clientTraceId);
+            }
+
+            generator.writeFieldName(PAYLOAD_FIELD);
+            generator.writeObject(event);
+            generator.writeEndObject();
+
+            generator.close();
+            sendMessageRaw(writer.toString());
+        } catch (IOException e) {
+            log.error("Could not convert json object", e);
+            throw new RuntimeException(e);
+        }
+
     }
 
     public void sendMessageRaw(String stringMessage) {
@@ -188,6 +213,14 @@ public class UserSession {
 
     public String getUserId() {
         return userId;
+    }
+
+    public boolean isSendHeartbeat() {
+        return sendHeartbeat;
+    }
+
+    public void setSendHeartbeat(boolean sendHeartbeat) {
+        this.sendHeartbeat = sendHeartbeat;
     }
 
     public void close() {

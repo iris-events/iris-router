@@ -6,6 +6,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArraySet;
+import java.util.concurrent.TimeUnit;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
@@ -17,10 +18,12 @@ import org.slf4j.LoggerFactory;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import id.global.core.router.client.AuthClient;
+import id.global.core.router.events.HeartBeatEvent;
 import id.global.core.router.model.AmqpMessage;
 import id.global.core.router.model.ResponseHandler;
 import id.global.core.router.model.UserSession;
 import id.global.core.router.model.WSResponseHandler;
+import io.quarkus.scheduler.Scheduled;
 
 /**
  * @author Tomaž Cerar
@@ -160,5 +163,15 @@ public class WebsocketRegistry {
      * return ret;
      * }
      */
+
+    @Scheduled(delay = 10, delayUnit = TimeUnit.SECONDS, every = "30s")
+    public void sendHeartBeat() {
+        for (UserSession session : getAllSessions()) {
+            session.ping();
+            if (session.isSendHeartbeat()) {
+                session.sendEvent(new HeartBeatEvent(), null);
+            }
+        }
+    }
 
 }
