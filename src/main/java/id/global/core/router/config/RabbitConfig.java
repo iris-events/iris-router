@@ -6,6 +6,8 @@ import javax.enterprise.inject.Produces;
 import javax.inject.Inject;
 
 import org.eclipse.microprofile.reactive.messaging.spi.Connector;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import io.smallrye.reactive.messaging.rabbitmq.RabbitMQConnector;
 import io.vertx.rabbitmq.RabbitMQClient;
@@ -13,6 +15,7 @@ import io.vertx.rabbitmq.RabbitMQOptions;
 
 @ApplicationScoped
 public class RabbitConfig {
+    private static final Logger log = LoggerFactory.getLogger(RabbitConfig.class);
 
     @Inject
     @Connector(value = "smallrye-rabbitmq")
@@ -24,7 +27,9 @@ public class RabbitConfig {
      */
 
     @Produces
-    public RabbitMQClient createClient(RabbitMQOptions options) {
+    public RabbitMQClient createClient() {
+        var options = createOptions();
+        log.info("options: host: {}, port: {}, ssl:{}", options.getHost(),options.getPort(), options.isSsl());
         return RabbitMQClient.create(connnector.getVertx().getDelegate(), options);
 
     }
