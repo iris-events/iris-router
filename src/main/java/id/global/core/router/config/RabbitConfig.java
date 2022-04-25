@@ -1,7 +1,7 @@
 package id.global.core.router.config;
 
 import javax.enterprise.context.ApplicationScoped;
-import javax.enterprise.inject.Instance;
+import javax.enterprise.inject.Default;
 import javax.enterprise.inject.Produces;
 import javax.inject.Inject;
 
@@ -18,16 +18,26 @@ public class RabbitConfig {
     @Connector(value = "smallrye-rabbitmq")
     RabbitMQConnector connnector;
 
-    @Inject
-    Instance<RabbitMQOptions> options;
+    /*
+     * @Inject
+     * Instance<RabbitMQOptions> options;
+     */
 
     @Produces
-    public RabbitMQClient createClient() {
-        RabbitMQOptions options = new RabbitMQOptions().setHost(System.getProperty("rabbitmq-host", "localhost"))
+    public RabbitMQClient createClient(RabbitMQOptions options) {
+        return RabbitMQClient.create(connnector.getVertx().getDelegate(), options);
+
+    }
+
+    @Produces
+    //@Identifier("iris")
+    @Default
+    public RabbitMQOptions createOptions() {
+        return new RabbitMQOptions().setHost(System.getProperty("rabbitmq-host", "localhost"))
                 .setPort(Integer.parseInt(System.getProperty("rabbitmq-port", "5672")))
                 .setUser(System.getProperty("rabbitmq-username", "guest"))
-                .setPassword(System.getProperty("rabbitmq-password", "guest"));
-        return RabbitMQClient.create(connnector.getVertx().getDelegate(), options);
+                .setPassword(System.getProperty("rabbitmq-password", "guest"))
+                .setSsl(Boolean.getBoolean("rabbitmq-ssl"));
 
     }
 }
