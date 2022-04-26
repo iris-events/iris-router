@@ -49,8 +49,7 @@ public class RabbitConfig {
         var ssl = config.getOptionalValue("rabbitmq-ssl", Boolean.class).orElse(false);
         log.info("host: {}, port: {}, user: {}, pass: {}, ssl: {}", host, port, username, password, ssl);
 
-        var options = new RabbitMQOptions()
-                .setHost(host)
+        var options = new RabbitMQOptions().setHost(host)
                 .setPort(port)
                 .setUser(username)
                 .setPassword(password)
@@ -66,8 +65,13 @@ public class RabbitConfig {
     @ApplicationScoped
     public RabbitMQOptions createProdOptions(Config config) {
         var rabbitUrl = config.getValue("quarkus.iris.rabbitmq.url", String.class);
+        var rabbitUsername = config.getValue("quarkus.iris.rabbitmq.username", String.class);
+        var rabbitPassword = config.getValue("quarkus.iris.rabbitmq.password", String.class);
         log.info("need to configure prod, url: {}", rabbitUrl);
-        return new RabbitMQOptions()
+        return new RabbitMQOptions().setTrustAll(false)
+                .setAutomaticRecoveryEnabled(true)
+                .setUser(rabbitUsername)
+                .setPassword(rabbitPassword)
                 .setUri(rabbitUrl);
 
     }
