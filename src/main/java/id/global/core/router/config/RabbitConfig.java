@@ -5,7 +5,6 @@ import javax.enterprise.inject.Produces;
 import javax.inject.Inject;
 
 import org.eclipse.microprofile.config.Config;
-import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.eclipse.microprofile.reactive.messaging.spi.Connector;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -19,9 +18,6 @@ import io.vertx.rabbitmq.RabbitMQOptions;
 
 @ApplicationScoped
 public class RabbitConfig {
-    @ConfigProperty(name = "quarkus.iris.rabbitmq.url")
-    String rabbitUrl;
-
     private static final Logger log = LoggerFactory.getLogger(RabbitConfig.class);
 
     @Inject
@@ -68,7 +64,8 @@ public class RabbitConfig {
     @DefaultBean
     @IfBuildProfile("prod")
     @ApplicationScoped
-    public RabbitMQOptions createProdOptions() {
+    public RabbitMQOptions createProdOptions(Config config) {
+        var rabbitUrl = config.getValue("quarkus.iris.rabbitmq.url", String.class);
         log.info("need to configure prod, url: {}", rabbitUrl);
         return new RabbitMQOptions()
                 .setUri(rabbitUrl);
