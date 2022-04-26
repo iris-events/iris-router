@@ -22,7 +22,6 @@
         <version.globalid-common>1.1.10</version.globalid-common>
         <version.iris-subscription-models>1.0.1</version.iris-subscription-models>
         <version.iris-asyncapi>1.1.10</version.iris-asyncapi>
-        <version.quarkus-rabbitmq-client>0.5.0.Final</version.quarkus-rabbitmq-client>
         <version.controlplane-api>0.1.31</version.controlplane-api>
         <version.iris-demo-inventory-models>1.0.3</version.iris-demo-inventory-models>
     </properties>

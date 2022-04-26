@@ -5,6 +5,7 @@ import javax.enterprise.inject.Produces;
 import javax.inject.Inject;
 
 import org.eclipse.microprofile.config.Config;
+import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.eclipse.microprofile.reactive.messaging.spi.Connector;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -18,6 +19,9 @@ import io.vertx.rabbitmq.RabbitMQOptions;
 
 @ApplicationScoped
 public class RabbitConfig {
+    @ConfigProperty(name = "quarkus.iris.rabbitmq.url")
+    String rabbitUrl;
+
     private static final Logger log = LoggerFactory.getLogger(RabbitConfig.class);
 
     @Inject
@@ -64,23 +68,10 @@ public class RabbitConfig {
     @DefaultBean
     @IfBuildProfile("prod")
     @ApplicationScoped
-    public RabbitMQOptions createProdOptions(Config config) {
-
-        //log.info("config: {}", config.getPropertyNames());
-        log.info("need to configure prod");
-        var host = config.getValue("rabbitmq-host", String.class);
-        var port = config.getValue("rabbitmq-port", Integer.class);
-        var username = config.getValue("rabbitmq-username", String.class);
-        var password = config.getValue("rabbitmq-password", String.class);
-        var ssl = config.getOptionalValue("rabbitmq-ssl", Boolean.class).orElse(false);
-        log.info("host: {}, port: {}, user: {}, pass: {}, ssl: {}", host, port, username, password, ssl);
-
+    public RabbitMQOptions createProdOptions() {
+        log.info("need to configure prod, url: {}", rabbitUrl);
         return new RabbitMQOptions()
-                .setHost(host)
-                .setPort(port)
-                .setUser(username)
-                .setPassword(password)
-                .setSsl(ssl);
+                .setUri(rabbitUrl);
 
     }
 }
