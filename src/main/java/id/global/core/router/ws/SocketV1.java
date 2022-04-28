@@ -20,7 +20,11 @@ import org.slf4j.LoggerFactory;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import id.global.common.annotations.iris.Message;
+import id.global.core.router.events.ErrorCode;
+import id.global.core.router.events.ErrorEvent;
+import id.global.core.router.events.ErrorType;
 import id.global.core.router.events.UserAuthenticated;
+import id.global.core.router.events.UserAuthenticatedEvent;
 import id.global.core.router.model.RequestWrapper;
 import id.global.core.router.model.Subscribe;
 import id.global.core.router.model.UserSession;
@@ -76,17 +80,17 @@ public class SocketV1 {
                 log.info("noting to do");
                 return;
             }
-            RequestWrapper msg = objectMapper.readerFor(RequestWrapper.class).readValue(message);
+            RequestWrapper msg = objectMapper.readValue(message, RequestWrapper.class);
             log.info("message: {}", msg);
+            final var userSession = websocketRegistry.getSession(session.getId());
             if (msg.event() == null) {
-                session.getAsyncRemote().sendText(
-                        "{\"event\":\"error\",\"payload\":{\"errorType\":\"BAD_REQUEST\",\"code\":\"BAD_REQUEST\",\"message\":\"'event' missing\"}}");
+                final var errorEvent = new ErrorEvent(ErrorType.BAD_REQUEST, ErrorCode.BAD_REQUEST, "'event' missing");
+                userSession.sendEvent(errorEvent, msg.clientTraceId());
             }
             if (msg.payload() == null) {
-                session.getAsyncRemote().sendText(
-                        "{\"event\":\"error\",\"payload\":{\"errorType\":\"BAD_REQUEST\",\"code\":\"BAD_REQUEST\",\"message\":\"'payload' missing\"}}");
+                final var errorEvent = new ErrorEvent(ErrorType.BAD_REQUEST, ErrorCode.BAD_REQUEST, "'payload' missing");
+                userSession.sendEvent(errorEvent, msg.clientTraceId());
             }
-            var userSession = websocketRegistry.getSession(session.getId());
             if ("subscribe".equals(msg.event())) {
                 final var subscribe = objectMapper.convertValue(msg.payload(), Subscribe.class);
                 subscribe(userSession, subscribe, msg.clientTraceId());
@@ -105,11 +109,14 @@ public class SocketV1 {
         if (subscribe.getToken() != null) {
             final var loginSucceeded = websocketRegistry.login(userSession, subscribe.getToken());
             if (!loginSucceeded) {
-                userSession.sendMessageRaw(
-                        "{\"event\":\"error\",\"payload\":{\"errorType\":\"AUTHORIZATION_FAILED\",\"code\":\"AUTHORIZATION_FAILED\",\"message\":\"authorization failed\"}}");
+                final var errorEvent = new ErrorEvent(ErrorType.AUTHORIZATION_FAILED, ErrorCode.AUTHORIZATION_FAILED,
+                        "authorization failed");
+                userSession.sendEvent(errorEvent, clientTraceId);
                 // when token is present, login must succeed
                 return;
             } else {
+                final var userAuthenticatedEvent = new UserAuthenticatedEvent();
+                userSession.sendEvent(userAuthenticatedEvent, clientTraceId);
                 final var userAuthenticated = new UserAuthenticated(userSession.getUserId());
                 // TODO: do not emit yet, we need to declare queue first
                 // sendIrisEventToBackend(userSession, clientTraceId, userAuthenticated);
