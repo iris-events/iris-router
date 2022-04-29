@@ -2,8 +2,11 @@ package id.global.core.router.ws;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 import javax.enterprise.context.ApplicationScoped;
+import javax.enterprise.inject.Any;
+import javax.enterprise.inject.Instance;
 import javax.inject.Inject;
 import javax.websocket.CloseReason;
 import javax.websocket.EndpointConfig;
@@ -19,18 +22,15 @@ import org.slf4j.LoggerFactory;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-import id.global.common.annotations.iris.Message;
 import id.global.core.router.events.ErrorCode;
 import id.global.core.router.events.ErrorEvent;
 import id.global.core.router.events.ErrorType;
-import id.global.core.router.events.UserAuthenticated;
-import id.global.core.router.events.UserAuthenticatedEvent;
 import id.global.core.router.model.RequestWrapper;
-import id.global.core.router.model.Subscribe;
-import id.global.core.router.model.UserSession;
 import id.global.core.router.service.BackendService;
 import id.global.core.router.service.WebsocketRegistry;
-import id.global.iris.amqp.parsers.ExchangeParser;
+import id.global.core.router.ws.message.handler.DefaultHandler;
+import id.global.core.router.ws.message.handler.EventType;
+import id.global.core.router.ws.message.handler.MessageHandler;
 import id.global.iris.irissubscription.SessionClosed;
 
 @ServerEndpoint(value = "/v0/websocket", configurator = WsContainerConfigurator.class)
@@ -44,6 +44,9 @@ public class SocketV1 {
     WebsocketRegistry websocketRegistry;
     @Inject
     BackendService backendService;
+    @Inject
+    @Any
+    Instance<MessageHandler> messageHandlers;
 
     @OnOpen
     public void onOpen(Session session, EndpointConfig conf) {
@@ -62,7 +65,7 @@ public class SocketV1 {
             final var userId = userSession.getUserId();
             final var sessionId = userSession.getId();
             final var sessionClosed = new SessionClosed(sessionId, userId);
-            sendIrisEventToBackend(userSession, null, sessionClosed);
+            backendService.sendIrisEventToBackend(userSession, null, sessionClosed);
         }
     }
 
@@ -77,10 +80,10 @@ public class SocketV1 {
         try {
             log.info("raw: {}", message);
             if (message.isEmpty()) {
-                log.info("noting to do");
+                log.info("nothing to do");
                 return;
             }
-            RequestWrapper msg = objectMapper.readValue(message, RequestWrapper.class);
+            final var msg = objectMapper.readValue(message, RequestWrapper.class);
             log.info("message: {}", msg);
             final var userSession = websocketRegistry.getSession(session.getId());
             if (msg.event() == null) {
@@ -91,65 +94,30 @@ public class SocketV1 {
                 final var errorEvent = new ErrorEvent(ErrorType.BAD_REQUEST, ErrorCode.BAD_REQUEST, "'payload' missing");
                 userSession.sendEvent(errorEvent, msg.clientTraceId());
             }
-            if ("subscribe".equals(msg.event())) {
-                final var subscribe = objectMapper.convertValue(msg.payload(), Subscribe.class);
-                subscribe(userSession, subscribe, msg.clientTraceId());
-                return;
-            }
 
-            sendToBackend(userSession, msg);
+            final var messageHandler = getMessageHandler(msg.event());
+            messageHandler.handle(userSession, msg);
         } catch (Exception e) {
             log.error("Could not handle message", e);
-            session.getAsyncRemote().sendText("Could not read message" + e.getMessage());
+            session.getAsyncRemote().sendText("Could not read message " + e.getMessage());
+        }
+    }
+
+    private MessageHandler getMessageHandler(final String eventName) {
+        if (Objects.isNull(eventName) || eventName.isBlank()) {
+            return getDefaultMessageHandler();
+        }
+        final var messageHandlerInstance = messageHandlers.select(new EventType.Literal(eventName));
+
+        if (messageHandlerInstance.isResolvable()) {
+            return messageHandlerInstance.get();
         }
 
+        return getDefaultMessageHandler();
     }
 
-    private void subscribe(final UserSession userSession, final Subscribe subscribe, final String clientTraceId) {
-        if (subscribe.getToken() != null) {
-            final var loginSucceeded = websocketRegistry.login(userSession, subscribe.getToken());
-            if (!loginSucceeded) {
-                final var errorEvent = new ErrorEvent(ErrorType.AUTHORIZATION_FAILED, ErrorCode.AUTHORIZATION_FAILED,
-                        "authorization failed");
-                userSession.sendEvent(errorEvent, clientTraceId);
-                // when token is present, login must succeed
-                return;
-            } else {
-                final var userAuthenticatedEvent = new UserAuthenticatedEvent();
-                userSession.sendEvent(userAuthenticatedEvent, clientTraceId);
-                final var userAuthenticated = new UserAuthenticated(userSession.getUserId());
-                // TODO: do not emit yet, we need to declare queue first
-                // sendIrisEventToBackend(userSession, clientTraceId, userAuthenticated);
-            }
-        }
-        if (subscribe.getHeartbeat() != null) {
-            userSession.setSendHeartbeat(subscribe.getHeartbeat());
-        }
-
-        subscribeResources(userSession, subscribe, clientTraceId);
+    private MessageHandler getDefaultMessageHandler() {
+        return messageHandlers.select(new DefaultHandler.Literal()).get();
     }
 
-    private void subscribeResources(final UserSession userSession, final Subscribe subscribe, final String clientTraceId) {
-        final var resourceSubscriptions = subscribe.getResources();
-        if (resourceSubscriptions == null) {
-            return;
-        }
-
-        // create new subscription service specific event to omit token
-        final var subscribeResources = new id.global.iris.irissubscription.Subscribe(subscribe.getResources());
-        sendIrisEventToBackend(userSession, clientTraceId, subscribeResources);
-    }
-
-    private void sendIrisEventToBackend(final UserSession userSession, final String clientTraceId, final Object message) {
-        final var messageAnnotation = message.getClass().getAnnotation(Message.class);
-        final var name = ExchangeParser.getFromAnnotationClass(messageAnnotation);
-        final var msg = new RequestWrapper(name, clientTraceId, objectMapper.valueToTree(message));
-        sendToBackend(userSession, msg);
-    }
-
-    private void sendToBackend(UserSession session, RequestWrapper requestWrapper) {
-        var message = session.createBackendRequest(requestWrapper);
-
-        backendService.sendToBackend(requestWrapper.event(), message);
-    }
 }
