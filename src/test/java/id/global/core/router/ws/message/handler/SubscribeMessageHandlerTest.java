@@ -11,6 +11,7 @@ import static org.mockito.Mockito.when;
 import java.util.UUID;
 
 import javax.inject.Inject;
+import javax.inject.Named;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -36,7 +37,7 @@ import io.quarkus.test.junit.mockito.InjectMock;
 class SubscribeMessageHandlerTest {
 
     @Inject
-    @EventType(SubscribeMessageHandler.EVENT_NAME)
+    @Named(SubscribeMessageHandler.EVENT_NAME)
     SubscribeMessageHandler messageHandler;
 
     @InjectMock

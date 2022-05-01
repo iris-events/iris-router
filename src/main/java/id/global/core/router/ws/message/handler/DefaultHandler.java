@@ -18,5 +18,6 @@ import javax.inject.Qualifier;
 public @interface DefaultHandler {
 
     final class Literal extends AnnotationLiteral<DefaultHandler> implements DefaultHandler {
+        public static final Literal INSTANCE = new Literal();
     }
 }

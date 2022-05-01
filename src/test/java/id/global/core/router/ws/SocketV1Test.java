@@ -15,6 +15,7 @@ import java.lang.annotation.Annotation;
 import java.util.UUID;
 
 import javax.enterprise.inject.Instance;
+import javax.enterprise.inject.literal.NamedLiteral;
 import javax.inject.Inject;
 import javax.websocket.RemoteEndpoint;
 import javax.websocket.Session;
@@ -34,7 +35,6 @@ import id.global.core.router.model.UserSession;
 import id.global.core.router.service.BackendService;
 import id.global.core.router.service.WebsocketRegistry;
 import id.global.core.router.ws.message.handler.DefaultHandler;
-import id.global.core.router.ws.message.handler.EventType;
 import id.global.core.router.ws.message.handler.MessageHandler;
 import io.quarkus.test.junit.QuarkusTest;
 
@@ -157,7 +157,7 @@ class SocketV1Test {
             final var messageHandler = mock(MessageHandler.class);
             when(messageHandlerInstance.get()).thenReturn(messageHandler);
             when(messageHandlerInstance.isResolvable()).thenReturn(true);
-            when(messageHandlers.select(new EventType.Literal(event))).thenReturn(messageHandlerInstance);
+            when(messageHandlers.select(NamedLiteral.of(event))).thenReturn(messageHandlerInstance);
 
             final var message = MESSAGE_PLACEHOLDER.formatted(event);
 
@@ -170,7 +170,7 @@ class SocketV1Test {
         void defaultHandler() {
             final Instance<MessageHandler> typedMessageHandlerInstance = mock(Instance.class);
             when(typedMessageHandlerInstance.isResolvable()).thenReturn(false);
-            when(messageHandlers.select(new EventType.Literal(event))).thenReturn(typedMessageHandlerInstance);
+            when(messageHandlers.select(NamedLiteral.of(event))).thenReturn(typedMessageHandlerInstance);
 
             final Instance<MessageHandler> defaultMessageHandlerInstance = mock(Instance.class);
             final var messageHandler = mock(MessageHandler.class);

@@ -4,6 +4,7 @@ import static id.global.core.router.ws.message.handler.SubscribeMessageHandler.E
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
+import javax.inject.Named;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -19,7 +20,7 @@ import id.global.core.router.service.BackendService;
 import id.global.core.router.service.WebsocketRegistry;
 
 @ApplicationScoped
-@EventType(EVENT_NAME)
+@Named(EVENT_NAME)
 public class SubscribeMessageHandler implements MessageHandler {
 
     public static final String EVENT_NAME = "subscribe";

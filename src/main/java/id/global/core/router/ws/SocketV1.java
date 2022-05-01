@@ -7,6 +7,7 @@ import java.util.Objects;
 import javax.enterprise.context.ApplicationScoped;
 import javax.enterprise.inject.Any;
 import javax.enterprise.inject.Instance;
+import javax.enterprise.inject.literal.NamedLiteral;
 import javax.inject.Inject;
 import javax.websocket.CloseReason;
 import javax.websocket.EndpointConfig;
@@ -29,7 +30,6 @@ import id.global.core.router.model.RequestWrapper;
 import id.global.core.router.service.BackendService;
 import id.global.core.router.service.WebsocketRegistry;
 import id.global.core.router.ws.message.handler.DefaultHandler;
-import id.global.core.router.ws.message.handler.EventType;
 import id.global.core.router.ws.message.handler.MessageHandler;
 import id.global.iris.irissubscription.SessionClosed;
 
@@ -107,7 +107,7 @@ public class SocketV1 {
         if (Objects.isNull(eventName) || eventName.isBlank()) {
             return getDefaultMessageHandler();
         }
-        final var messageHandlerInstance = messageHandlers.select(new EventType.Literal(eventName));
+        final var messageHandlerInstance = messageHandlers.select(NamedLiteral.of(eventName));
 
         if (messageHandlerInstance.isResolvable()) {
             return messageHandlerInstance.get();
@@ -117,7 +117,7 @@ public class SocketV1 {
     }
 
     private MessageHandler getDefaultMessageHandler() {
-        return messageHandlers.select(new DefaultHandler.Literal()).get();
+        return messageHandlers.select(DefaultHandler.Literal.INSTANCE).get();
     }
 
 }
