@@ -8,9 +8,8 @@ import javax.inject.Named;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-import id.global.core.router.events.ErrorCode;
+import id.global.common.error.iris.SecurityError;
 import id.global.core.router.events.ErrorEvent;
-import id.global.core.router.events.ErrorType;
 import id.global.core.router.events.UserAuthenticated;
 import id.global.core.router.events.UserAuthenticatedEvent;
 import id.global.core.router.model.RequestWrapper;
@@ -52,8 +51,7 @@ public class SubscribeMessageHandler implements MessageHandler {
                 // TODO: do not emit yet, we need to declare queue first
                 // sendIrisEventToBackend(userSession, clientTraceId, userAuthenticated);
             } else {
-                final var errorEvent = new ErrorEvent(ErrorType.AUTHORIZATION_FAILED, ErrorCode.AUTHORIZATION_FAILED,
-                        "authorization failed");
+                final var errorEvent = ErrorEvent.of(SecurityError.AUTHORIZATION_FAILED, "authorization failed");
                 userSession.sendEvent(errorEvent, clientTraceId);
                 // when token is present, login must succeed
                 return;

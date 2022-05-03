@@ -21,9 +21,8 @@ import org.mockito.ArgumentCaptor;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-import id.global.core.router.events.ErrorCode;
+import id.global.common.error.iris.SecurityError;
 import id.global.core.router.events.ErrorEvent;
-import id.global.core.router.events.ErrorType;
 import id.global.core.router.events.UserAuthenticatedEvent;
 import id.global.core.router.model.RequestWrapper;
 import id.global.core.router.model.Subscribe;
@@ -71,8 +70,8 @@ class SubscribeMessageHandlerTest {
 
         final var errorEvent = errorEventArgumentCaptor.getValue();
         assertThat(errorEvent.getName(), is(ErrorEvent.NAME));
-        assertThat(errorEvent.errorType(), is(ErrorType.AUTHORIZATION_FAILED));
-        assertThat(errorEvent.code(), is(ErrorCode.AUTHORIZATION_FAILED));
+        assertThat(errorEvent.errorType(), is(SecurityError.AUTHORIZATION_FAILED.getType()));
+        assertThat(errorEvent.code(), is(SecurityError.AUTHORIZATION_FAILED.getClientCode()));
         assertThat(errorEvent.message(), is("authorization failed"));
     }
 

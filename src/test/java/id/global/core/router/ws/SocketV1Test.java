@@ -27,9 +27,8 @@ import org.mockito.ArgumentCaptor;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-import id.global.core.router.events.ErrorCode;
+import id.global.common.error.iris.ClientError;
 import id.global.core.router.events.ErrorEvent;
-import id.global.core.router.events.ErrorType;
 import id.global.core.router.model.RequestWrapper;
 import id.global.core.router.model.UserSession;
 import id.global.core.router.service.BackendService;
@@ -95,14 +94,14 @@ class SocketV1Test {
         final var errorEventArgumentCaptorAllValues = errorEventArgumentCaptor.getAllValues();
         final var eventMissingError = errorEventArgumentCaptorAllValues.get(0);
         assertThat(eventMissingError.getName(), is(ErrorEvent.NAME));
-        assertThat(eventMissingError.errorType(), is(ErrorType.BAD_REQUEST));
-        assertThat(eventMissingError.code(), is(ErrorCode.BAD_REQUEST));
+        assertThat(eventMissingError.errorType(), is(ClientError.BAD_REQUEST.getType()));
+        assertThat(eventMissingError.code(), is(ClientError.BAD_REQUEST.getClientCode()));
         assertThat(eventMissingError.message(), is("'event' missing"));
 
         final var payloadMissingError = errorEventArgumentCaptorAllValues.get(1);
         assertThat(payloadMissingError.getName(), is(ErrorEvent.NAME));
-        assertThat(payloadMissingError.errorType(), is(ErrorType.BAD_REQUEST));
-        assertThat(payloadMissingError.code(), is(ErrorCode.BAD_REQUEST));
+        assertThat(payloadMissingError.errorType(), is(ClientError.BAD_REQUEST.getType()));
+        assertThat(payloadMissingError.code(), is(ClientError.BAD_REQUEST.getClientCode()));
         assertThat(payloadMissingError.message(), is("'payload' missing"));
 
         verify(messageHandler).handle(eq(userSession), any(RequestWrapper.class));

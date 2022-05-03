@@ -23,9 +23,8 @@ import org.slf4j.LoggerFactory;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-import id.global.core.router.events.ErrorCode;
+import id.global.common.error.iris.ClientError;
 import id.global.core.router.events.ErrorEvent;
-import id.global.core.router.events.ErrorType;
 import id.global.core.router.model.RequestWrapper;
 import id.global.core.router.service.BackendService;
 import id.global.core.router.service.WebsocketRegistry;
@@ -87,11 +86,11 @@ public class SocketV1 {
             log.info("message: {}", msg);
             final var userSession = websocketRegistry.getSession(session.getId());
             if (msg.event() == null) {
-                final var errorEvent = new ErrorEvent(ErrorType.BAD_REQUEST, ErrorCode.BAD_REQUEST, "'event' missing");
+                final var errorEvent = ErrorEvent.of(ClientError.BAD_REQUEST, "'event' missing");
                 userSession.sendEvent(errorEvent, msg.clientTraceId());
             }
             if (msg.payload() == null) {
-                final var errorEvent = new ErrorEvent(ErrorType.BAD_REQUEST, ErrorCode.BAD_REQUEST, "'payload' missing");
+                final var errorEvent = ErrorEvent.of(ClientError.BAD_REQUEST, "'payload' missing");
                 userSession.sendEvent(errorEvent, msg.clientTraceId());
             }
 
