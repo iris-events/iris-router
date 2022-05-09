@@ -20,10 +20,9 @@ import org.slf4j.LoggerFactory;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
-import id.global.common.annotations.iris.Message;
+import id.global.common.iris.annotations.Message;
 import id.global.core.router.model.RequestWrapper;
 import id.global.core.router.model.Subscribe;
-import id.global.iris.irisdemoinventory.InventoryStockInquiry;
 import io.quarkus.test.common.http.TestHTTPResource;
 import io.quarkus.test.junit.QuarkusTest;
 
@@ -52,9 +51,9 @@ public class WebsocketTest {
              * consentEvent.setAcrcId("some acrc");
              * send(session, consentEvent);
              */
-            var stockInquiry = new InventoryStockInquiry();
-
-            send(session, stockInquiry);
+            //            var stockInquiry = new InventoryStockInquiry();
+            //
+            //            send(session, stockInquiry);
             /*
              * Assertions.assertEquals("User stu joined", MESSAGES.poll(10, TimeUnit.SECONDS));
              * session.getAsyncRemote().sendText("hello world");

@@ -1,23 +1,22 @@
 package id.global.core.router.model;
 
-import static id.global.common.constants.iris.MessagingHeaders.Message.ANONYMOUS_ID;
-import static id.global.common.constants.iris.MessagingHeaders.Message.CLIENT_TRACE_ID;
-import static id.global.common.constants.iris.MessagingHeaders.Message.DEVICE;
-import static id.global.common.constants.iris.MessagingHeaders.Message.EVENT_TYPE;
-import static id.global.common.constants.iris.MessagingHeaders.Message.IP_ADDRESS;
-import static id.global.common.constants.iris.MessagingHeaders.Message.JWT;
-import static id.global.common.constants.iris.MessagingHeaders.Message.PROXY_IP_ADDRESS;
-import static id.global.common.constants.iris.MessagingHeaders.Message.REQUEST_VIA;
-import static id.global.common.constants.iris.MessagingHeaders.Message.ROUTER;
-import static id.global.common.constants.iris.MessagingHeaders.Message.SESSION_ID;
-import static id.global.common.constants.iris.MessagingHeaders.Message.USER_AGENT;
-import static id.global.common.constants.iris.MessagingHeaders.Message.USER_ID;
+import static id.global.common.iris.constants.MessagingHeaders.Message.ANONYMOUS_ID;
+import static id.global.common.iris.constants.MessagingHeaders.Message.CLIENT_TRACE_ID;
+import static id.global.common.iris.constants.MessagingHeaders.Message.DEVICE;
+import static id.global.common.iris.constants.MessagingHeaders.Message.EVENT_TYPE;
+import static id.global.common.iris.constants.MessagingHeaders.Message.IP_ADDRESS;
+import static id.global.common.iris.constants.MessagingHeaders.Message.JWT;
+import static id.global.common.iris.constants.MessagingHeaders.Message.PROXY_IP_ADDRESS;
+import static id.global.common.iris.constants.MessagingHeaders.Message.REQUEST_VIA;
+import static id.global.common.iris.constants.MessagingHeaders.Message.ROUTER;
+import static id.global.common.iris.constants.MessagingHeaders.Message.SESSION_ID;
+import static id.global.common.iris.constants.MessagingHeaders.Message.USER_AGENT;
+import static id.global.common.iris.constants.MessagingHeaders.Message.USER_ID;
+import static id.global.common.iris.error.SecurityError.UNAUTHORIZED;
 
 import java.io.IOException;
-import java.io.StringWriter;
 import java.io.UncheckedIOException;
 import java.nio.ByteBuffer;
-import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Date;
@@ -35,12 +34,13 @@ import org.eclipse.microprofile.jwt.JsonWebToken;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.rabbitmq.client.AMQP;
 
+import id.global.common.iris.message.ErrorMessage;
 import id.global.core.router.consumer.AbstractWebSocketConsumer;
+import id.global.core.router.events.ErrorEvent;
 import id.global.core.router.events.RouterEvent;
 import io.vertx.core.buffer.Buffer;
 
@@ -49,11 +49,6 @@ import io.vertx.core.buffer.Buffer;
  */
 public class UserSession {
     private static final Logger log = LoggerFactory.getLogger(UserSession.class);
-
-    private static final String EVENT_FIELD = "event";
-    private static final String PAYLOAD_FIELD = "payload";
-    private static final String CLIENT_TRACE_ID_FIELD = "clientTraceId";
-    private static final String SUBSCRIPTION_ID_FIELD = "subscriptionId";
 
     private final String anonymousUserId;
 
@@ -118,45 +113,43 @@ public class UserSession {
     }
 
     //actions
-
     public void sendMessage(AmqpMessage message) {
-        var msg = convertResponse(message);
-        sendMessageRaw(msg);
+        final var clientTraceId = message.clientTraceId();
+        final var rawMessage = RawMessage.RawMessageBuilder.getInstance(objectMapper)
+                .setEventName(message.eventType())
+                .setClientTraceId(clientTraceId)
+                .setSubscriptionId(message.subscriptionId())
+                .setPayloadFromBuffer(message.body())
+                .build();
+
+        sendMessageRaw(rawMessage, clientTraceId);
+    }
+
+    public void sendErrorMessage(ErrorMessage errorMessage, String clientTraceId) {
+        final var routerEvent = getErrorEvent(errorMessage);
+        sendEvent(routerEvent, clientTraceId);
     }
 
     public void sendEvent(RouterEvent event, String clientTraceId) {
-
-        try {
-            StringWriter writer = new StringWriter();
-            JsonGenerator generator = objectMapper.getFactory().createGenerator(writer);
-            generator.writeStartObject();
-            generator.writeStringField(EVENT_FIELD, event.getName());
-            if (clientTraceId != null) {
-                generator.writeStringField(CLIENT_TRACE_ID_FIELD, clientTraceId);
-            }
-
-            generator.writeFieldName(PAYLOAD_FIELD);
-            generator.writeObject(event);
-            generator.writeEndObject();
-
-            generator.close();
-            sendMessageRaw(writer.toString());
-        } catch (IOException e) {
-            log.error("Could not convert json object", e);
-            throw new RuntimeException(e);
-        }
-
+        final var rawMessage = getRawMessage(event, clientTraceId);
+        sendMessageRaw(rawMessage, clientTraceId);
     }
 
-    public void sendMessageRaw(String stringMessage) {
+    public void sendMessageRaw(final RawMessage rawMessage, final String clientTraceId) {
+        final var stringMessage = rawMessage.getMessage();
         if (log.isTraceEnabled()) {
             log.trace("session: {}, message: {}", socketId, stringMessage);
         }
 
         if (!isValid()) {
-            log.warn("[{}] We are trying to write '{}' to socket that is not valid, userId: {}", socketId,
+            log.warn("[{}] We are trying to write '{}' to socket that is not valid, userId: {}. Closing the socket.", socketId,
                     trimMessage(stringMessage), userId);
-            //sendEvent(new JWTExceptionEvent(jwtHash), null);
+            try {
+                sendSessionInvalidError(clientTraceId);
+                session.close(new CloseReason(CloseReason.CloseCodes.NORMAL_CLOSURE, UNAUTHORIZED.getClientCode()));
+            } catch (IOException e) {
+                log.warn("Could not close socket", e);
+            }
         } else {
             writeMessageDirect(stringMessage);
         }
@@ -223,10 +216,10 @@ public class UserSession {
         this.sendHeartbeat = sendHeartbeat;
     }
 
-    public void close() {
+    public void close(final CloseReason reason) {
         log.trace("[{}] Closing websocket", socketId);
         try {
-            session.close(new CloseReason(CloseReason.CloseCodes.NORMAL_CLOSURE, "close"));
+            session.close(reason);
         } catch (IOException e) {
             log.warn("could not close socket", e);
         }
@@ -242,6 +235,59 @@ public class UserSession {
             headers.put(USER_ID, userId);
         }
         headers.putAll(defaultMessageHeaders);
+    }
+
+    public AmqpMessage createBackendRequest(RequestWrapper requestMessage) {
+        var eventType = requestMessage.event();
+        var headers = new HashMap<String, Object>();
+        setBackendMessageHeaders(headers);
+        headers.put(EVENT_TYPE, eventType);
+        headers.put(CLIENT_TRACE_ID, requestMessage.clientTraceId());
+        headers.put(REQUEST_VIA, "router/WebSocket");
+        if (log.isTraceEnabled()) {
+            var copy = new HashMap<>(headers);
+            log.trace("[{}] backend payload: {},  headers: {}", getUserId(), requestMessage.payload(), copy);
+        }
+        String correlationId = UUID.randomUUID().toString();
+        final AMQP.BasicProperties messageProperties = new AMQP.BasicProperties()
+                .builder()
+                .correlationId(correlationId)
+                .timestamp(new Date())
+                .headers(headers)
+                .build();
+        return new AmqpMessage(writeValueAsBytes(requestMessage.payload()), messageProperties, eventType);
+    }
+
+    public void pong() {
+        try {
+            session.getAsyncRemote().sendPong(ByteBuffer.wrap("Hello".getBytes()));
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
+        }
+
+    }
+
+    public void ping() {
+        try {
+            session.getAsyncRemote().sendPong(ByteBuffer.wrap("Hello".getBytes()));
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
+        }
+    }
+
+    public void sendSessionInvalidError(final String clientTraceId) {
+        final var errorEvent = getErrorEvent(new ErrorMessage(RouterError.TOKEN_EXPIRED, "Token has expired."));
+        final var rawErrorMessage = getRawMessage(errorEvent, clientTraceId);
+        writeMessageDirect(rawErrorMessage.getMessage());
+    }
+
+    private Buffer writeValueAsBytes(Object value) throws RuntimeException {
+        try {
+
+            return Buffer.buffer(objectMapper.writeValueAsBytes(value));
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException("Could not serialize to json", e);
+        }
     }
 
     private void setupDefaultHeaders(Map<String, List<String>> headers) {
@@ -290,80 +336,13 @@ public class UserSession {
         defaultMessageHeaders.put(ROUTER, AbstractWebSocketConsumer.routerId);
     }
 
-    public AmqpMessage createBackendRequest(RequestWrapper requestMessage) {
-
-        var eventType = requestMessage.event();
-
-        var headers = new HashMap<String, Object>();
-        setBackendMessageHeaders(headers);
-        headers.put(EVENT_TYPE, eventType);
-        headers.put(CLIENT_TRACE_ID, requestMessage.clientTraceId());
-        headers.put(REQUEST_VIA, "router/WebSocket");
-        if (log.isTraceEnabled()) {
-            var copy = new HashMap<>(headers);
-            log.trace("[{}] backend payload: {},  headers: {}", getUserId(), requestMessage.payload(), copy);
-        }
-        String correlationId = UUID.randomUUID().toString();
-        final AMQP.BasicProperties messageProperties = new AMQP.BasicProperties()
-                .builder()
-                .correlationId(correlationId)
-                .timestamp(new Date())
-                .headers(headers)
+    private RawMessage getRawMessage(final RouterEvent event, final String clientTraceId) {
+        return RawMessage.RawMessageBuilder.getInstance(objectMapper)
+                .setEventName(event.getName())
+                .setClientTraceId(clientTraceId)
+                .setSubscriptionId(null)
+                .setPayloadFromEvent(event)
                 .build();
-        return new AmqpMessage(writeValueAsBytes(requestMessage.payload()), messageProperties, eventType);
-
-    }
-
-    private Buffer writeValueAsBytes(Object value) throws RuntimeException {
-        try {
-
-            return Buffer.buffer(objectMapper.writeValueAsBytes(value));
-        } catch (JsonProcessingException e) {
-            throw new RuntimeException("Could not serialize to json", e);
-        }
-    }
-
-    public void pong() {
-        try {
-            session.getAsyncRemote().sendPong(ByteBuffer.wrap("Hello".getBytes()));
-        } catch (IOException e) {
-            throw new UncheckedIOException(e);
-        }
-
-    }
-
-    public void ping() {
-        try {
-            session.getAsyncRemote().sendPong(ByteBuffer.wrap("Hello".getBytes()));
-        } catch (IOException e) {
-            throw new UncheckedIOException(e);
-        }
-    }
-
-    private String convertResponse(AmqpMessage message) {
-        try {
-            StringWriter writer = new StringWriter();
-            JsonGenerator jGenerator = objectMapper.getFactory().createGenerator(writer);
-            jGenerator.writeStartObject();
-            jGenerator.writeStringField(EVENT_FIELD, message.eventType());
-            if (message.clientTraceId() != null) {
-                jGenerator.writeStringField(CLIENT_TRACE_ID_FIELD, message.clientTraceId());
-            }
-            if (message.subscriptionId() != null) {
-                jGenerator.writeStringField(SUBSCRIPTION_ID_FIELD, message.subscriptionId());
-            }
-            if (message.body() != null) {
-                jGenerator.writeFieldName(PAYLOAD_FIELD);
-                jGenerator.writeRawValue(message.body().toString(StandardCharsets.UTF_8));
-                jGenerator.writeEndObject();
-            }
-
-            jGenerator.close();
-            return writer.toString();
-        } catch (IOException e) {
-            log.error("Could not convert json object", e);
-            throw new RuntimeException(e);
-        }
     }
 
     @Override
@@ -389,5 +368,9 @@ public class UserSession {
     @Override
     public int hashCode() {
         return Objects.hash(socketId, userId);
+    }
+
+    private static ErrorEvent getErrorEvent(final ErrorMessage errorMessage) {
+        return new ErrorEvent(errorMessage.errorType(), errorMessage.code(), errorMessage.message());
     }
 }

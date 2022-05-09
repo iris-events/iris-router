@@ -27,7 +27,7 @@ import org.mockito.ArgumentCaptor;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-import id.global.common.error.iris.ClientError;
+import id.global.common.iris.error.ClientError;
 import id.global.core.router.events.ErrorEvent;
 import id.global.core.router.model.RequestWrapper;
 import id.global.core.router.model.UserSession;

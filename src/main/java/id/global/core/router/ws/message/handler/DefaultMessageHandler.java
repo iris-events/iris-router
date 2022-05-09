@@ -16,6 +16,11 @@ public class DefaultMessageHandler implements MessageHandler {
 
     @Override
     public void handle(UserSession userSession, RequestWrapper requestWrapper) {
-        backendService.sendIrisEventToBackend(userSession, requestWrapper.clientTraceId(), requestWrapper);
+        if (!userSession.isValid()) {
+            userSession.sendSessionInvalidError(requestWrapper.clientTraceId());
+            return;
+        }
+        final var backendRequest = userSession.createBackendRequest(requestWrapper);
+        backendService.sendToBackend(requestWrapper.event(), backendRequest);
     }
 }

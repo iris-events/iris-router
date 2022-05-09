@@ -8,7 +8,7 @@ import javax.inject.Named;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-import id.global.common.error.iris.SecurityError;
+import id.global.common.iris.error.SecurityError;
 import id.global.core.router.events.ErrorEvent;
 import id.global.core.router.events.UserAuthenticated;
 import id.global.core.router.events.UserAuthenticatedEvent;
@@ -54,6 +54,11 @@ public class SubscribeMessageHandler implements MessageHandler {
                 final var errorEvent = ErrorEvent.of(SecurityError.AUTHORIZATION_FAILED, "authorization failed");
                 userSession.sendEvent(errorEvent, clientTraceId);
                 // when token is present, login must succeed
+                return;
+            }
+        } else {
+            if (!userSession.isValid()) {
+                userSession.sendSessionInvalidError(clientTraceId);
                 return;
             }
         }

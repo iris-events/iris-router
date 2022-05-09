@@ -4,7 +4,7 @@ import java.util.List;
 
 import javax.enterprise.context.ApplicationScoped;
 
-import id.global.common.constants.iris.Queues;
+import id.global.common.iris.constants.Queues;
 import id.global.core.router.model.ResponseMessageType;
 
 @ApplicationScoped

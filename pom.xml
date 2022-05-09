@@ -5,7 +5,7 @@
     <parent>
         <groupId>id.global</groupId>
         <artifactId>microservice-parent</artifactId>
-        <version>5.0</version>
+        <version>5.2</version>
         <relativePath/>
     </parent>
     <groupId>id.global.iris</groupId>
@@ -19,11 +19,11 @@
     </scm>
 
     <properties>
-        <version.globalid-common>1.1.10</version.globalid-common>
-        <version.iris-subscription-models>1.0.1</version.iris-subscription-models>
-        <version.iris-asyncapi>1.1.10</version.iris-asyncapi>
+        <version.globalid-common>1.1.11</version.globalid-common>
+        <version.iris-subscription-models>1.0.3</version.iris-subscription-models>
+        <version.iris-asyncapi>1.1.11</version.iris-asyncapi>
         <version.controlplane-api>0.1.31</version.controlplane-api>
-        <version.iris-demo-inventory-models>1.0.3</version.iris-demo-inventory-models>
+<!--        <version.iris-demo-inventory-models>1.0.3</version.iris-demo-inventory-models>-->
     </properties>
     <dependencies>
         <dependency>
@@ -69,12 +69,12 @@
         </dependency>
 
         <!-- Test dependencies -->
-        <dependency>
-            <groupId>id.global.iris</groupId>
-            <artifactId>iris-demo-inventory-models</artifactId>
-            <version>${version.iris-demo-inventory-models}</version>
-            <scope>test</scope>
-        </dependency>
+<!--        <dependency>-->
+<!--            <groupId>id.global.iris</groupId>-->
+<!--            <artifactId>iris-demo-inventory-models</artifactId>-->
+<!--            <version>${version.iris-demo-inventory-models}</version>-->
+<!--            <scope>test</scope>-->
+<!--        </dependency>-->
         <dependency>
             <groupId>io.quarkus</groupId>
             <artifactId>quarkus-junit5-mockito</artifactId>

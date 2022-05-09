@@ -9,8 +9,8 @@ import org.slf4j.LoggerFactory;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-import id.global.common.annotations.iris.Message;
-import id.global.common.constants.iris.Exchanges;
+import id.global.common.iris.annotations.Message;
+import id.global.common.iris.constants.Exchanges;
 import id.global.core.router.model.AmqpMessage;
 import id.global.core.router.model.RequestWrapper;
 import id.global.core.router.model.UserSession;
