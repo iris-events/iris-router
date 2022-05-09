@@ -21,7 +21,7 @@ import org.mockito.ArgumentCaptor;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-import id.global.common.error.iris.SecurityError;
+import id.global.common.iris.error.SecurityError;
 import id.global.core.router.events.ErrorEvent;
 import id.global.core.router.events.UserAuthenticatedEvent;
 import id.global.core.router.model.RequestWrapper;

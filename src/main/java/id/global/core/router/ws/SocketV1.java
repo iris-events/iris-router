@@ -23,8 +23,8 @@ import org.slf4j.LoggerFactory;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-import id.global.common.error.iris.ClientError;
-import id.global.core.router.events.ErrorEvent;
+import id.global.common.iris.error.ClientError;
+import id.global.common.iris.message.ErrorMessage;
 import id.global.core.router.model.RequestWrapper;
 import id.global.core.router.service.BackendService;
 import id.global.core.router.service.WebsocketRegistry;
@@ -60,7 +60,7 @@ public class SocketV1 {
         var userSession = websocketRegistry.removeSocket(session.getId());
         log.info("closing user session: {}, reason: {}", userSession, reason.getReasonPhrase());
         if (userSession != null) {
-            userSession.close();
+            userSession.close(reason);
             final var userId = userSession.getUserId();
             final var sessionId = userSession.getId();
             final var sessionClosed = new SessionClosed(sessionId, userId);
@@ -86,12 +86,12 @@ public class SocketV1 {
             log.info("message: {}", msg);
             final var userSession = websocketRegistry.getSession(session.getId());
             if (msg.event() == null) {
-                final var errorEvent = ErrorEvent.of(ClientError.BAD_REQUEST, "'event' missing");
-                userSession.sendEvent(errorEvent, msg.clientTraceId());
+                final var errorEvent = new ErrorMessage(ClientError.BAD_REQUEST, "'event' missing");
+                userSession.sendErrorMessage(errorEvent, msg.clientTraceId());
             }
             if (msg.payload() == null) {
-                final var errorEvent = ErrorEvent.of(ClientError.BAD_REQUEST, "'payload' missing");
-                userSession.sendEvent(errorEvent, msg.clientTraceId());
+                final var errorEvent = new ErrorMessage(ClientError.BAD_REQUEST, "'payload' missing");
+                userSession.sendErrorMessage(errorEvent, msg.clientTraceId());
             }
 
             final var messageHandler = getMessageHandler(msg.event());
