@@ -28,7 +28,7 @@ import org.mockito.ArgumentCaptor;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import id.global.common.iris.error.ClientError;
-import id.global.core.router.events.ErrorEvent;
+import id.global.common.iris.message.ErrorMessage;
 import id.global.core.router.model.RequestWrapper;
 import id.global.core.router.model.UserSession;
 import id.global.core.router.service.BackendService;
@@ -79,6 +79,7 @@ class SocketV1Test {
         when(session.getId()).thenReturn(sessionId);
 
         final var userSession = mock(UserSession.class);
+        when(userSession.isValid()).thenReturn(true);
         when(websocketRegistry.getSession(sessionId)).thenReturn(userSession);
 
         final Instance<MessageHandler> messageHandlerInstance = mock(Instance.class);
@@ -88,18 +89,16 @@ class SocketV1Test {
 
         socketV1.onMessage(session, "{}");
 
-        final var errorEventArgumentCaptor = ArgumentCaptor.forClass(ErrorEvent.class);
-        verify(userSession, times(2)).sendEvent(errorEventArgumentCaptor.capture(), eq(null));
+        final var errorEventArgumentCaptor = ArgumentCaptor.forClass(ErrorMessage.class);
+        verify(userSession, times(2)).sendErrorMessage(errorEventArgumentCaptor.capture(), eq(null));
 
         final var errorEventArgumentCaptorAllValues = errorEventArgumentCaptor.getAllValues();
         final var eventMissingError = errorEventArgumentCaptorAllValues.get(0);
-        assertThat(eventMissingError.getName(), is(ErrorEvent.NAME));
         assertThat(eventMissingError.errorType(), is(ClientError.BAD_REQUEST.getType()));
         assertThat(eventMissingError.code(), is(ClientError.BAD_REQUEST.getClientCode()));
         assertThat(eventMissingError.message(), is("'event' missing"));
 
         final var payloadMissingError = errorEventArgumentCaptorAllValues.get(1);
-        assertThat(payloadMissingError.getName(), is(ErrorEvent.NAME));
         assertThat(payloadMissingError.errorType(), is(ClientError.BAD_REQUEST.getType()));
         assertThat(payloadMissingError.code(), is(ClientError.BAD_REQUEST.getClientCode()));
         assertThat(payloadMissingError.message(), is("'payload' missing"));

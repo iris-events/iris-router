@@ -53,6 +53,7 @@ class SubscribeMessageHandlerTest {
     @BeforeEach
     void beforeEach() {
         userSession = mock(UserSession.class);
+        when(userSession.isValid()).thenReturn(true);
     }
 
     @Test

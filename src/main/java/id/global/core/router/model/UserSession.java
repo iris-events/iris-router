@@ -283,7 +283,6 @@ public class UserSession {
 
     private Buffer writeValueAsBytes(Object value) throws RuntimeException {
         try {
-
             return Buffer.buffer(objectMapper.writeValueAsBytes(value));
         } catch (JsonProcessingException e) {
             throw new RuntimeException("Could not serialize to json", e);
