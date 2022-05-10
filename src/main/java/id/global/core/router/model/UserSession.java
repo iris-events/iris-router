@@ -227,6 +227,7 @@ public class UserSession {
     }
 
     public void setBackendMessageHeaders(Map<String, Object> headers) {
+        headers.putAll(defaultMessageHeaders);
         if (anonymous) {
             headers.put(ANONYMOUS_ID, anonymousUserId);
             headers.put(USER_ID, anonymousUserId);
@@ -234,7 +235,6 @@ public class UserSession {
             headers.put(JWT, token.getRawToken());
             headers.put(USER_ID, userId);
         }
-        headers.putAll(defaultMessageHeaders);
     }
 
     public AmqpMessage createBackendRequest(RequestWrapper requestMessage) {
