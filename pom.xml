@@ -5,7 +5,7 @@
     <parent>
         <groupId>id.global</groupId>
         <artifactId>microservice-parent</artifactId>
-        <version>5.2</version>
+        <version>5.3</version>
         <relativePath/>
     </parent>
     <groupId>id.global.iris</groupId>
@@ -21,7 +21,7 @@
     <properties>
         <version.globalid-common>1.1.12</version.globalid-common>
         <version.iris-subscription-models>1.0.4</version.iris-subscription-models>
-        <version.iris-asyncapi>1.1.11</version.iris-asyncapi>
+        <version.iris-asyncapi>1.1.12</version.iris-asyncapi>
         <version.controlplane-api>0.1.31</version.controlplane-api>
     </properties>
     <dependencies>
