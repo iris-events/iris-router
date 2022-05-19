@@ -21,7 +21,7 @@
     <properties>
         <version.globalid-common>1.1.12</version.globalid-common>
         <version.iris-subscription-models>1.0.4</version.iris-subscription-models>
-        <version.iris-asyncapi>1.1.12</version.iris-asyncapi>
+        <version.iris-asyncapi>1.1.13</version.iris-asyncapi>
         <version.controlplane-api>0.1.31</version.controlplane-api>
     </properties>
     <dependencies>
