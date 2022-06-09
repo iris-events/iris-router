@@ -1,6 +1,8 @@
 package id.global.core.router.model;
 
-import com.fasterxml.jackson.databind.node.ArrayNode;
+import java.util.List;
+
+import id.global.iris.irissubscription.payload.Resource;
 
 /**
  * @author Tomaz Cerar
@@ -9,7 +11,7 @@ public final class Subscribe extends id.global.iris.irissubscription.Subscribe {
     private final String token;
     private final Boolean heartbeat;
 
-    public Subscribe(final ArrayNode resources, final String token, Boolean heartbeat) {
+    public Subscribe(final List<Resource> resources, final String token, Boolean heartbeat) {
         super(resources);
         this.token = token;
         this.heartbeat = heartbeat;

@@ -1,5 +1,6 @@
 package id.global.core.router.ws.message.handler;
 
+import static id.global.core.router.events.ErrorEvent.AUTHORIZATION_FAILED_CLIENT_CODE;
 import static id.global.core.router.ws.message.handler.SubscribeMessageHandler.EVENT_NAME;
 
 import javax.enterprise.context.ApplicationScoped;
@@ -8,7 +9,6 @@ import javax.inject.Named;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-import id.global.common.iris.error.SecurityError;
 import id.global.core.router.events.ErrorEvent;
 import id.global.core.router.events.UserAuthenticated;
 import id.global.core.router.events.UserAuthenticatedEvent;
@@ -17,6 +17,7 @@ import id.global.core.router.model.Subscribe;
 import id.global.core.router.model.UserSession;
 import id.global.core.router.service.BackendService;
 import id.global.core.router.service.WebsocketRegistry;
+import id.global.iris.common.error.ErrorType;
 
 @ApplicationScoped
 @Named(EVENT_NAME)
@@ -51,7 +52,8 @@ public class SubscribeMessageHandler implements MessageHandler {
                 // TODO: do not emit yet, we need to declare queue first
                 // sendIrisEventToBackend(userSession, clientTraceId, userAuthenticated);
             } else {
-                final var errorEvent = ErrorEvent.of(SecurityError.AUTHORIZATION_FAILED, "authorization failed");
+                final var errorEvent = new ErrorEvent(ErrorType.AUTHENTICATION_FAILED, AUTHORIZATION_FAILED_CLIENT_CODE,
+                        "authorization failed");
                 userSession.sendEvent(errorEvent, clientTraceId);
                 // when token is present, login must succeed
                 return;

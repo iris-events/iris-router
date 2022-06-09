@@ -5,7 +5,7 @@ import javax.inject.Inject;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
-import id.global.common.iris.constants.Exchanges;
+import id.global.iris.common.constants.Exchanges;
 import io.quarkus.test.junit.QuarkusTest;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.rabbitmq.RabbitMQClient;

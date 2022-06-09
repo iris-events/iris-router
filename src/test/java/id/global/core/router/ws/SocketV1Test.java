@@ -1,5 +1,7 @@
 package id.global.core.router.ws;
 
+import static id.global.core.router.events.ErrorEvent.EVENT_MISSING_CLIENT_CODE;
+import static id.global.core.router.events.ErrorEvent.PAYLOAD_MISSING_CLIENT_CODE;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 import static org.mockito.ArgumentMatchers.any;
@@ -27,14 +29,14 @@ import org.mockito.ArgumentCaptor;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-import id.global.common.iris.error.ClientError;
-import id.global.common.iris.message.ErrorMessage;
 import id.global.core.router.model.RequestWrapper;
 import id.global.core.router.model.UserSession;
 import id.global.core.router.service.BackendService;
 import id.global.core.router.service.WebsocketRegistry;
 import id.global.core.router.ws.message.handler.DefaultHandler;
 import id.global.core.router.ws.message.handler.MessageHandler;
+import id.global.iris.common.error.ErrorType;
+import id.global.iris.common.message.ErrorMessage;
 import io.quarkus.test.junit.QuarkusTest;
 
 @QuarkusTest
@@ -94,13 +96,13 @@ class SocketV1Test {
 
         final var errorEventArgumentCaptorAllValues = errorEventArgumentCaptor.getAllValues();
         final var eventMissingError = errorEventArgumentCaptorAllValues.get(0);
-        assertThat(eventMissingError.errorType(), is(ClientError.BAD_REQUEST.getType()));
-        assertThat(eventMissingError.code(), is(ClientError.BAD_REQUEST.getClientCode()));
+        assertThat(eventMissingError.errorType(), is(ErrorType.BAD_PAYLOAD));
+        assertThat(eventMissingError.code(), is(EVENT_MISSING_CLIENT_CODE));
         assertThat(eventMissingError.message(), is("'event' missing"));
 
         final var payloadMissingError = errorEventArgumentCaptorAllValues.get(1);
-        assertThat(payloadMissingError.errorType(), is(ClientError.BAD_REQUEST.getType()));
-        assertThat(payloadMissingError.code(), is(ClientError.BAD_REQUEST.getClientCode()));
+        assertThat(payloadMissingError.errorType(), is(ErrorType.BAD_PAYLOAD));
+        assertThat(payloadMissingError.code(), is(PAYLOAD_MISSING_CLIENT_CODE));
         assertThat(payloadMissingError.message(), is("'payload' missing"));
 
         verify(messageHandler).handle(eq(userSession), any(RequestWrapper.class));

@@ -9,12 +9,12 @@ import org.slf4j.LoggerFactory;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-import id.global.common.iris.annotations.Message;
-import id.global.common.iris.constants.Exchanges;
 import id.global.core.router.model.AmqpMessage;
 import id.global.core.router.model.RequestWrapper;
 import id.global.core.router.model.UserSession;
 import id.global.iris.amqp.parsers.ExchangeParser;
+import id.global.iris.common.annotations.Message;
+import id.global.iris.common.constants.Exchanges;
 import io.quarkus.runtime.StartupEvent;
 import io.vertx.rabbitmq.RabbitMQClient;
 

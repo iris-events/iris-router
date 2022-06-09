@@ -1,18 +1,19 @@
 package id.global.core.router.model;
 
-import static id.global.common.iris.constants.MessagingHeaders.Message.ANONYMOUS_ID;
-import static id.global.common.iris.constants.MessagingHeaders.Message.CLIENT_TRACE_ID;
-import static id.global.common.iris.constants.MessagingHeaders.Message.DEVICE;
-import static id.global.common.iris.constants.MessagingHeaders.Message.EVENT_TYPE;
-import static id.global.common.iris.constants.MessagingHeaders.Message.IP_ADDRESS;
-import static id.global.common.iris.constants.MessagingHeaders.Message.JWT;
-import static id.global.common.iris.constants.MessagingHeaders.Message.PROXY_IP_ADDRESS;
-import static id.global.common.iris.constants.MessagingHeaders.Message.REQUEST_VIA;
-import static id.global.common.iris.constants.MessagingHeaders.Message.ROUTER;
-import static id.global.common.iris.constants.MessagingHeaders.Message.SESSION_ID;
-import static id.global.common.iris.constants.MessagingHeaders.Message.USER_AGENT;
-import static id.global.common.iris.constants.MessagingHeaders.Message.USER_ID;
-import static id.global.common.iris.error.SecurityError.UNAUTHORIZED;
+import static id.global.core.router.events.ErrorEvent.TOKEN_EXPIRED_CLIENT_CODE;
+import static id.global.core.router.events.ErrorEvent.UNAUTHORIZED_CLIENT_CODE;
+import static id.global.iris.common.constants.MessagingHeaders.Message.ANONYMOUS_ID;
+import static id.global.iris.common.constants.MessagingHeaders.Message.CLIENT_TRACE_ID;
+import static id.global.iris.common.constants.MessagingHeaders.Message.DEVICE;
+import static id.global.iris.common.constants.MessagingHeaders.Message.EVENT_TYPE;
+import static id.global.iris.common.constants.MessagingHeaders.Message.IP_ADDRESS;
+import static id.global.iris.common.constants.MessagingHeaders.Message.JWT;
+import static id.global.iris.common.constants.MessagingHeaders.Message.PROXY_IP_ADDRESS;
+import static id.global.iris.common.constants.MessagingHeaders.Message.REQUEST_VIA;
+import static id.global.iris.common.constants.MessagingHeaders.Message.ROUTER;
+import static id.global.iris.common.constants.MessagingHeaders.Message.SESSION_ID;
+import static id.global.iris.common.constants.MessagingHeaders.Message.USER_AGENT;
+import static id.global.iris.common.constants.MessagingHeaders.Message.USER_ID;
 
 import java.io.IOException;
 import java.io.UncheckedIOException;
@@ -38,10 +39,11 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.rabbitmq.client.AMQP;
 
-import id.global.common.iris.message.ErrorMessage;
 import id.global.core.router.consumer.AbstractWebSocketConsumer;
 import id.global.core.router.events.ErrorEvent;
 import id.global.core.router.events.RouterEvent;
+import id.global.iris.common.error.ErrorType;
+import id.global.iris.common.message.ErrorMessage;
 import io.vertx.core.buffer.Buffer;
 
 /**
@@ -146,7 +148,7 @@ public class UserSession {
                     trimMessage(stringMessage), userId);
             try {
                 sendSessionInvalidError(clientTraceId);
-                session.close(new CloseReason(CloseReason.CloseCodes.NORMAL_CLOSURE, UNAUTHORIZED.getClientCode()));
+                session.close(new CloseReason(CloseReason.CloseCodes.NORMAL_CLOSURE, UNAUTHORIZED_CLIENT_CODE));
             } catch (IOException e) {
                 log.warn("Could not close socket", e);
             }
@@ -276,7 +278,8 @@ public class UserSession {
     }
 
     public void sendSessionInvalidError(final String clientTraceId) {
-        final var errorEvent = getErrorEvent(new ErrorMessage(RouterError.TOKEN_EXPIRED, "Token has expired."));
+        final var errorEvent = getErrorEvent(
+                new ErrorMessage(ErrorType.UNAUTHORIZED, TOKEN_EXPIRED_CLIENT_CODE, "Token has expired."));
         final var rawErrorMessage = getRawMessage(errorEvent, clientTraceId);
         writeMessageDirect(rawErrorMessage.getMessage());
     }
