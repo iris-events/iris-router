@@ -10,7 +10,6 @@ import javax.inject.Inject;
 
 import org.junit.jupiter.api.Test;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import id.global.core.router.model.AmqpMessage;

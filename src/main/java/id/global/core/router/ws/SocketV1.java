@@ -1,5 +1,8 @@
 package id.global.core.router.ws;
 
+import static id.global.core.router.events.ErrorEvent.EVENT_MISSING_CLIENT_CODE;
+import static id.global.core.router.events.ErrorEvent.PAYLOAD_MISSING_CLIENT_CODE;
+
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -23,13 +26,13 @@ import org.slf4j.LoggerFactory;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-import id.global.common.iris.error.ClientError;
-import id.global.common.iris.message.ErrorMessage;
 import id.global.core.router.model.RequestWrapper;
 import id.global.core.router.service.BackendService;
 import id.global.core.router.service.WebsocketRegistry;
 import id.global.core.router.ws.message.handler.DefaultHandler;
 import id.global.core.router.ws.message.handler.MessageHandler;
+import id.global.iris.common.error.ErrorType;
+import id.global.iris.common.message.ErrorMessage;
 import id.global.iris.irissubscription.SessionClosed;
 
 @ServerEndpoint(value = "/v0/websocket", configurator = WsContainerConfigurator.class)
@@ -86,11 +89,12 @@ public class SocketV1 {
             log.info("message: {}", msg);
             final var userSession = websocketRegistry.getSession(session.getId());
             if (msg.event() == null) {
-                final var errorEvent = new ErrorMessage(ClientError.BAD_REQUEST, "'event' missing");
+                final var errorEvent = new ErrorMessage(ErrorType.BAD_PAYLOAD, EVENT_MISSING_CLIENT_CODE, "'event' missing");
                 userSession.sendErrorMessage(errorEvent, msg.clientTraceId());
             }
             if (msg.payload() == null) {
-                final var errorEvent = new ErrorMessage(ClientError.BAD_REQUEST, "'payload' missing");
+                final var errorEvent = new ErrorMessage(ErrorType.BAD_PAYLOAD, PAYLOAD_MISSING_CLIENT_CODE,
+                        "'payload' missing");
                 userSession.sendErrorMessage(errorEvent, msg.clientTraceId());
             }
 

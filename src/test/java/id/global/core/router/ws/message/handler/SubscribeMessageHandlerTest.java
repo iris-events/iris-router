@@ -1,5 +1,7 @@
 package id.global.core.router.ws.message.handler;
 
+import static id.global.core.router.events.ErrorEvent.AUTHORIZATION_FAILED_CLIENT_CODE;
+import static id.global.core.router.events.ErrorEvent.UNAUTHORIZED_CLIENT_CODE;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 import static org.mockito.ArgumentMatchers.eq;
@@ -8,6 +10,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
+import java.util.ArrayList;
 import java.util.UUID;
 
 import javax.inject.Inject;
@@ -21,7 +24,6 @@ import org.mockito.ArgumentCaptor;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-import id.global.common.iris.error.SecurityError;
 import id.global.core.router.events.ErrorEvent;
 import id.global.core.router.events.UserAuthenticatedEvent;
 import id.global.core.router.model.RequestWrapper;
@@ -29,6 +31,8 @@ import id.global.core.router.model.Subscribe;
 import id.global.core.router.model.UserSession;
 import id.global.core.router.service.BackendService;
 import id.global.core.router.service.WebsocketRegistry;
+import id.global.iris.common.error.ErrorType;
+import id.global.iris.irissubscription.payload.Resource;
 import io.quarkus.test.junit.QuarkusTest;
 import io.quarkus.test.junit.mockito.InjectMock;
 
@@ -71,8 +75,8 @@ class SubscribeMessageHandlerTest {
 
         final var errorEvent = errorEventArgumentCaptor.getValue();
         assertThat(errorEvent.getName(), is(ErrorEvent.NAME));
-        assertThat(errorEvent.errorType(), is(SecurityError.AUTHORIZATION_FAILED.getType()));
-        assertThat(errorEvent.code(), is(SecurityError.AUTHORIZATION_FAILED.getClientCode()));
+        assertThat(errorEvent.errorType(), is(ErrorType.AUTHENTICATION_FAILED));
+        assertThat(errorEvent.code(), is(AUTHORIZATION_FAILED_CLIENT_CODE));
         assertThat(errorEvent.message(), is("authorization failed"));
     }
 
@@ -116,7 +120,7 @@ class SubscribeMessageHandlerTest {
 
     @Test
     void subscriptions() {
-        final var resources = objectMapper.createArrayNode();
+        final var resources = new ArrayList<Resource>();
         final var subscribe = new Subscribe(resources, null, null);
         final var requestWrapper = new RequestWrapper(null, UUID.randomUUID().toString(), objectMapper.valueToTree(subscribe));
 

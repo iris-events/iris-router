@@ -1,11 +1,11 @@
 package id.global.core.router.service;
 
-import static id.global.common.iris.constants.MessagingHeaders.Message.DEVICE;
-import static id.global.common.iris.constants.MessagingHeaders.Message.IP_ADDRESS;
-import static id.global.common.iris.constants.MessagingHeaders.Message.REQUEST_REFERER;
-import static id.global.common.iris.constants.MessagingHeaders.Message.REQUEST_URI;
-import static id.global.common.iris.constants.MessagingHeaders.Message.REQUEST_VIA;
-import static id.global.common.iris.constants.MessagingHeaders.Message.USER_AGENT;
+import static id.global.iris.common.constants.MessagingHeaders.Message.DEVICE;
+import static id.global.iris.common.constants.MessagingHeaders.Message.IP_ADDRESS;
+import static id.global.iris.common.constants.MessagingHeaders.Message.REQUEST_REFERER;
+import static id.global.iris.common.constants.MessagingHeaders.Message.REQUEST_URI;
+import static id.global.iris.common.constants.MessagingHeaders.Message.REQUEST_VIA;
+import static id.global.iris.common.constants.MessagingHeaders.Message.USER_AGENT;
 
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;

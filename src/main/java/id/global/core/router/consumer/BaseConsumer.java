@@ -1,6 +1,6 @@
 package id.global.core.router.consumer;
 
-import static id.global.common.iris.constants.MessagingHeaders.Message.EVENT_TYPE;
+import static id.global.iris.common.constants.MessagingHeaders.Message.EVENT_TYPE;
 
 import java.util.List;
 

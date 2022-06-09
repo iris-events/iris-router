@@ -5,7 +5,7 @@
     <parent>
         <groupId>id.global</groupId>
         <artifactId>microservice-parent</artifactId>
-        <version>5.3</version>
+        <version>5.7</version>
         <relativePath/>
     </parent>
     <groupId>id.global.iris</groupId>
@@ -19,26 +19,25 @@
     </scm>
 
     <properties>
-        <version.globalid-common>1.1.12</version.globalid-common>
-        <version.iris-subscription-models>1.0.4</version.iris-subscription-models>
-        <version.iris-asyncapi>1.1.13</version.iris-asyncapi>
+        <version.globalid.iris-subscription-models>1.0.6</version.globalid.iris-subscription-models>
+        <version.globalid.iris>2.0.6</version.globalid.iris>
         <version.controlplane-api>0.1.31</version.controlplane-api>
     </properties>
     <dependencies>
         <dependency>
-            <groupId>id.global.common</groupId>
-            <artifactId>globalid-common</artifactId>
-            <version>${version.globalid-common}</version>
+            <groupId>id.global.iris</groupId>
+            <artifactId>iris-common</artifactId>
+            <version>${version.globalid.iris}</version>
         </dependency>
         <dependency>
             <groupId>id.global.iris</groupId>
             <artifactId>iris-asyncapi</artifactId>
-            <version>${version.iris-asyncapi}</version>
+            <version>${version.globalid.iris}</version>
         </dependency>
         <dependency>
             <groupId>id.global.iris</groupId>
             <artifactId>iris-subscription-models</artifactId>
-            <version>${version.iris-subscription-models}</version>
+            <version>${version.globalid.iris-subscription-models}</version>
         </dependency>
 
         <dependency>

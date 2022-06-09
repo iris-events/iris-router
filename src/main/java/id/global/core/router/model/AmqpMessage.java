@@ -1,11 +1,11 @@
 package id.global.core.router.model;
 
-import static id.global.common.iris.constants.MessagingHeaders.Message.CLIENT_TRACE_ID;
-import static id.global.common.iris.constants.MessagingHeaders.Message.CURRENT_SERVICE_ID;
-import static id.global.common.iris.constants.MessagingHeaders.Message.ROUTER;
-import static id.global.common.iris.constants.MessagingHeaders.Message.SESSION_ID;
-import static id.global.common.iris.constants.MessagingHeaders.Message.SUBSCRIPTION_ID;
-import static id.global.common.iris.constants.MessagingHeaders.Message.USER_ID;
+import static id.global.iris.common.constants.MessagingHeaders.Message.CLIENT_TRACE_ID;
+import static id.global.iris.common.constants.MessagingHeaders.Message.CURRENT_SERVICE_ID;
+import static id.global.iris.common.constants.MessagingHeaders.Message.ROUTER;
+import static id.global.iris.common.constants.MessagingHeaders.Message.SESSION_ID;
+import static id.global.iris.common.constants.MessagingHeaders.Message.SUBSCRIPTION_ID;
+import static id.global.iris.common.constants.MessagingHeaders.Message.USER_ID;
 
 import com.rabbitmq.client.BasicProperties;
 

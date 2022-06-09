@@ -4,8 +4,8 @@ import java.util.List;
 
 import javax.enterprise.context.ApplicationScoped;
 
-import id.global.common.iris.constants.Exchanges;
 import id.global.core.router.model.ResponseMessageType;
+import id.global.iris.common.constants.Exchanges;
 
 @ApplicationScoped
 public class WebsocketSessionConsumer extends AbstractWebSocketConsumer {

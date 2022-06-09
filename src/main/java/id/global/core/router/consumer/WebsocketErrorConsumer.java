@@ -4,8 +4,8 @@ import java.util.List;
 
 import javax.enterprise.context.ApplicationScoped;
 
-import id.global.common.iris.constants.Queues;
 import id.global.core.router.model.ResponseMessageType;
+import id.global.iris.common.constants.Queues;
 
 @ApplicationScoped
 public class WebsocketErrorConsumer extends AbstractWebSocketConsumer {
