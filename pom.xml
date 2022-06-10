@@ -18,7 +18,7 @@
     </scm>
 
     <properties>
-        <version.globalid.iris-subscription-models>1.0.6</version.globalid.iris-subscription-models>
+        <version.globalid.iris-subscription-models>1.0.7</version.globalid.iris-subscription-models>
         <version.globalid.iris>2.0.6</version.globalid.iris>
         <version.controlplane-api>0.1.31</version.controlplane-api>
     </properties>
