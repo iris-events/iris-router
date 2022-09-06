@@ -20,7 +20,7 @@
     <properties>
         <version.globalid.iris-subscription-models>1.0.7</version.globalid.iris-subscription-models>
         <version.globalid.iris>2.0.7</version.globalid.iris>
-        <version.controlplane-api>0.1.31</version.controlplane-api>
+        <version.controlplane-api>0.1.34</version.controlplane-api>
     </properties>
     <dependencies>
         <dependency>
