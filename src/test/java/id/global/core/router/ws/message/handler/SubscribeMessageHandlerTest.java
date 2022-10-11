@@ -1,7 +1,6 @@
 package id.global.core.router.ws.message.handler;
 
 import static id.global.core.router.events.ErrorEvent.AUTHORIZATION_FAILED_CLIENT_CODE;
-import static id.global.core.router.events.ErrorEvent.UNAUTHORIZED_CLIENT_CODE;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 import static org.mockito.ArgumentMatchers.eq;
