@@ -1,7 +1,6 @@
 package id.global.core.router.ws;
 
 import static id.global.core.router.events.ErrorEvent.EVENT_MISSING_CLIENT_CODE;
-import static id.global.core.router.events.ErrorEvent.PAYLOAD_MISSING_CLIENT_CODE;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 import static org.mockito.ArgumentMatchers.any;
@@ -68,6 +67,7 @@ class SocketV1Test {
     @Test
     void onMessageEmpty() {
         final var session = mock(Session.class);
+        when(session.getId()).thenReturn(UUID.randomUUID().toString());
         socketV1.onMessage(session, "");
 
         verifyNoInteractions(websocketRegistry);
@@ -92,7 +92,7 @@ class SocketV1Test {
         socketV1.onMessage(session, "{}");
 
         final var errorEventArgumentCaptor = ArgumentCaptor.forClass(ErrorMessage.class);
-        verify(userSession, times(2)).sendErrorMessage(errorEventArgumentCaptor.capture(), eq(null));
+        verify(userSession, times(1)).sendErrorMessage(errorEventArgumentCaptor.capture(), eq(null));
 
         final var errorEventArgumentCaptorAllValues = errorEventArgumentCaptor.getAllValues();
         final var eventMissingError = errorEventArgumentCaptorAllValues.get(0);
@@ -100,12 +100,7 @@ class SocketV1Test {
         assertThat(eventMissingError.code(), is(EVENT_MISSING_CLIENT_CODE));
         assertThat(eventMissingError.message(), is("'event' missing"));
 
-        final var payloadMissingError = errorEventArgumentCaptorAllValues.get(1);
-        assertThat(payloadMissingError.errorType(), is(ErrorType.BAD_PAYLOAD));
-        assertThat(payloadMissingError.code(), is(PAYLOAD_MISSING_CLIENT_CODE));
-        assertThat(payloadMissingError.message(), is("'payload' missing"));
-
-        verify(messageHandler).handle(eq(userSession), any(RequestWrapper.class));
+        verifyNoInteractions(messageHandler);
     }
 
     @Test
@@ -125,7 +120,10 @@ class SocketV1Test {
         final var message = "test message";
         doThrow(new RuntimeException(message)).when(messageHandler).handle(any(), any());
 
-        socketV1.onMessage(session, "{}");
+        final var messageContent = """
+                { "event": "test", "payload": {  "foo": "bar" }}
+                """;
+        socketV1.onMessage(session, messageContent);
 
         verify(async).sendText("Could not read message " + message);
     }
@@ -134,12 +132,12 @@ class SocketV1Test {
     class OnMessageNested {
 
         public static final String MESSAGE_PLACEHOLDER = """
-                {"event": "%s"}
+                {"event": "%s", "payload": %s}
                 """;
 
         private Session session;
         private UserSession userSession;
-        private String event = "test";
+        private final String event = "test";
 
         @BeforeEach
         void beforeEach() {
@@ -159,7 +157,7 @@ class SocketV1Test {
             when(messageHandlerInstance.isResolvable()).thenReturn(true);
             when(messageHandlers.select(NamedLiteral.of(event))).thenReturn(messageHandlerInstance);
 
-            final var message = MESSAGE_PLACEHOLDER.formatted(event);
+            final var message = MESSAGE_PLACEHOLDER.formatted(event, "{}");
 
             socketV1.onMessage(session, message);
 
@@ -177,7 +175,7 @@ class SocketV1Test {
             when(defaultMessageHandlerInstance.get()).thenReturn(messageHandler);
             when(messageHandlers.select(new DefaultHandler.Literal())).thenReturn(defaultMessageHandlerInstance);
 
-            final var message = MESSAGE_PLACEHOLDER.formatted(event);
+            final var message = MESSAGE_PLACEHOLDER.formatted(event, "{}");
 
             socketV1.onMessage(session, message);
 

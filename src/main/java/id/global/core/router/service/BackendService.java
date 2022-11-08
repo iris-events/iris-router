@@ -52,7 +52,7 @@ public class BackendService {
     public void sendToBackend(String eventType, AmqpMessage message) {
         websocketRegistry.registerRequest(message);
 
-        log.info("publishing message to '{}' - {}", FRONTEND_EXCHANGE, eventType);
+        log.info("Publishing message to backend '{}' - {}", FRONTEND_EXCHANGE, eventType);
         client.basicPublish(FRONTEND_EXCHANGE, eventType, message.properties(), message.body());
     }
 

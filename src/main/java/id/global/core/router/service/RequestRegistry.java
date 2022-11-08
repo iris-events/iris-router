@@ -62,15 +62,14 @@ public class RequestRegistry {
 
             Duration duration = Duration.between(request.created(), Instant.now());
             if (duration.toMillis() >= requestTimeLogThreshold) {
-                requestLogger.info("Request for '{}', params: {}, response event: {} took {} ms", request.dataType(),
-                        request.requestBody(), message.eventType(), duration.toMillis());
+                requestLogger.info("Request for '{}', params: {} took {} ms", request.dataType(),
+                        request.requestBody(), duration.toMillis());
             }
             handler.handle(messageType, message);
+            requestLogger.info("Request handled successfully - removing request.");
             requests.remove(correlationId);
         } else {
-            requestErrorLogger.warn(
-                    "could not properly handle message, request id no longer active, requestId: {}, clientTraceId: {}, userId: {}, event: {}",
-                    correlationId, message.clientTraceId(), message.userId(), message.eventType());
+            requestErrorLogger.warn("Could not properly handle message, request/correlation id no longer active.");
         }
 
     }

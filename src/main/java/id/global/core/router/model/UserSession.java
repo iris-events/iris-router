@@ -39,7 +39,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.rabbitmq.client.AMQP;
 
-import id.global.core.router.consumer.AbstractWebSocketConsumer;
+import id.global.core.router.consumer.AbstractRabbitMqConsumer;
 import id.global.core.router.events.ErrorEvent;
 import id.global.core.router.events.RouterEvent;
 import id.global.iris.common.error.ErrorType;
@@ -98,8 +98,8 @@ public class UserSession {
         this.userId = anonymousUserId;
         this.anonymous = true;
         this.connectedAt = Instant.now();
-        log.info("created new user session for userId: {}, socket id: {}", userId, socketId);
-        setupDefaultHeaders(headers);
+        log.info("Created new user session. userId: {}", userId);
+        setupDefaultHeaders(session.getId(), headers);
     }
 
     public String getId() {
@@ -292,11 +292,14 @@ public class UserSession {
         }
     }
 
-    private void setupDefaultHeaders(Map<String, List<String>> headers) {
+    private void setupDefaultHeaders(String sessionId, Map<String, List<String>> headers) {
         this.clientIp = headers.getOrDefault("X-Envoy-External-Address", List.of())
                 .stream()
                 .findAny()
-                .orElse(null);
+                .orElseGet(() -> {
+                    log.warn("X-Envoy-External-Address header missing - no client IP set for sessionId: {}", sessionId);
+                    return null;
+                });
 
         // getting proxy ip address from headers
         List<String> proxyIpList = headers.get("X-Forwarded-For");
@@ -335,7 +338,7 @@ public class UserSession {
         if (clientDeviceId != null) {
             defaultMessageHeaders.put(DEVICE, clientDeviceId);
         }
-        defaultMessageHeaders.put(ROUTER, AbstractWebSocketConsumer.routerId);
+        defaultMessageHeaders.put(ROUTER, AbstractRabbitMqConsumer.routerId);
     }
 
     private RawMessage getRawMessage(final RouterEvent event, final String clientTraceId) {

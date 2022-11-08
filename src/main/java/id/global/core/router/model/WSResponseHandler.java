@@ -50,21 +50,18 @@ public class WSResponseHandler extends DefaultResponseHandler {
     private void sendToSession(AmqpMessage message) {
         String sessionId = message.sessionId();
         if (sessionId == null || sessionId.isBlank()) {
-            LOGGER.warn("Could not send session message with sessionId: {}, requestId: {}, userId: {}, message: {}", sessionId,
-                    message.correlationId(), message.userId(), BackendRequest.sanitizeBody(message.body()));
+            LOGGER.warn("Could not send session message. message: {}", BackendRequest.sanitizeBody(message.body()));
             return;
         }
         UserSession session = websocketRegistry.getSession(sessionId);
         //assert session != null;
         if (session == null) {
             if (LOGGER.isTraceEnabled()) {
-                LOGGER.warn("Could not find session with sessionId: {} on this router, requestId: {}, userId: {}, message: {}",
-                        sessionId, message.correlationId(), message.userId(), BackendRequest.sanitizeBody(message.body()));
+                LOGGER.warn("Could not find session on this router message: {}", BackendRequest.sanitizeBody(message.body()));
             }
             return;
         }
         session.sendMessage(message);
-
     }
 
     private void sendRPCMessage(AmqpMessage message) {
@@ -72,8 +69,7 @@ public class WSResponseHandler extends DefaultResponseHandler {
         Set<? extends UserSession> allSocketOfTheUser = websocketRegistry.getAllUserSessions(userId);
         if (allSocketOfTheUser == null || allSocketOfTheUser.isEmpty()) {
             if (LOGGER.isTraceEnabled()) {
-                LOGGER.trace("There are no sockets for user: {}, request: {}! dropping message, event: {},  body{}", userId,
-                        message.correlationId(), message.eventType(), BackendRequest.sanitizeBody(message.body()));
+                LOGGER.trace("No sockets found to send RPC message. message: {}", BackendRequest.sanitizeBody(message.body()));
             }
             return;
         }
