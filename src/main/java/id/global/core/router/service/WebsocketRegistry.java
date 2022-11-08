@@ -51,15 +51,17 @@ public class WebsocketRegistry {
     public UserSession startSession(Session session, Map<String, List<String>> headers) {
         UserSession userSession = createUserSession(session, headers);
         String userId = userSession.getUserId();
-        //LOGGER.info("socket: {}", userSession);
         sockets.put(session.getId(), userSession);
-        users.computeIfAbsent(userId, s -> new CopyOnWriteArraySet<>())
-                .add(userSession);
+        users.computeIfAbsent(userId, s -> new CopyOnWriteArraySet<>()).add(userSession);
         return userSession;
     }
 
     public UserSession getSession(String sessionId) {
-        return sockets.get(sessionId);
+        final var userSession = sockets.get(sessionId);
+        if (userSession == null) {
+            LOGGER.warn("User session not found.");
+        }
+        return userSession;
     }
 
     public boolean hasUserSession(String userId) {

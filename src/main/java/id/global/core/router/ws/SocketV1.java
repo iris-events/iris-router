@@ -2,10 +2,15 @@ package id.global.core.router.ws;
 
 import static id.global.core.router.events.ErrorEvent.EVENT_MISSING_CLIENT_CODE;
 import static id.global.core.router.events.ErrorEvent.PAYLOAD_MISSING_CLIENT_CODE;
+import static id.global.iris.common.constants.MessagingHeaders.Message.CLIENT_TRACE_ID;
+import static id.global.iris.common.constants.MessagingHeaders.Message.EVENT_TYPE;
+import static id.global.iris.common.constants.MessagingHeaders.Message.SESSION_ID;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.enterprise.inject.Any;
@@ -23,6 +28,7 @@ import javax.websocket.server.ServerEndpoint;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.slf4j.MDC;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -31,6 +37,7 @@ import id.global.core.router.service.BackendService;
 import id.global.core.router.service.WebsocketRegistry;
 import id.global.core.router.ws.message.handler.DefaultHandler;
 import id.global.core.router.ws.message.handler.MessageHandler;
+import id.global.iris.common.constants.MessagingHeaders;
 import id.global.iris.common.error.ErrorType;
 import id.global.iris.common.message.ErrorMessage;
 import id.global.iris.irissubscription.SessionClosed;
@@ -52,22 +59,36 @@ public class SocketV1 {
 
     @OnOpen
     public void onOpen(Session session, EndpointConfig conf) {
-        log.info("web socket {} opened, user props: {} ", session.getId(), conf.getUserProperties());
-        Map<String, List<String>> headers = (Map<String, List<String>>) conf.getUserProperties().remove("headers");
-        var userSession = websocketRegistry.startSession(session, headers);
-        conf.getUserProperties().put("user-session", userSession);
+        try {
+            MDC.put(SESSION_ID, session.getId());
+            log.info("Web socket opened. userProperties: {} ", conf.getUserProperties());
+            Map<String, List<String>> headers = Optional
+                    .ofNullable((Map<String, List<String>>) conf.getUserProperties().remove("headers"))
+                    .orElse(Collections.emptyMap());
+            var userSession = websocketRegistry.startSession(session, headers);
+            conf.getUserProperties().put("user-session", userSession);
+        } finally {
+            MDC.clear();
+        }
     }
 
     @OnClose
     public void onClose(Session session, CloseReason reason) {
-        var userSession = websocketRegistry.removeSocket(session.getId());
-        log.info("closing user session: {}, reason: {}", userSession, reason.getReasonPhrase());
-        if (userSession != null) {
-            userSession.close(reason);
-            final var userId = userSession.getUserId();
-            final var sessionId = userSession.getId();
-            final var sessionClosed = new SessionClosed(sessionId, userId);
-            backendService.sendIrisEventToBackend(userSession, null, sessionClosed);
+        try {
+            MDC.put(SESSION_ID, session.getId());
+            var userSession = websocketRegistry.removeSocket(session.getId());
+            Optional.ofNullable(userSession).ifPresent(us -> MDC.put(MessagingHeaders.Message.USER_ID, us.getUserId()));
+            log.info("Closing websocket user session. reason: {}, closeCode: {}", reason.getReasonPhrase(),
+                    reason.getCloseCode());
+            if (userSession != null) {
+                userSession.close(reason);
+                final var userId = userSession.getUserId();
+                final var sessionId = userSession.getId();
+                final var sessionClosed = new SessionClosed(sessionId, userId);
+                backendService.sendIrisEventToBackend(userSession, null, sessionClosed);
+            }
+        } finally {
+            MDC.clear();
         }
     }
 
@@ -80,29 +101,44 @@ public class SocketV1 {
     @OnMessage
     public void onMessage(Session session, String message) {
         try {
-            log.info("raw: {}", message);
+            MDC.put(SESSION_ID, session.getId());
             if (message.isEmpty()) {
-                log.info("nothing to do");
+                log.warn("Received empty message, discarding message.");
                 return;
             }
+
             final var msg = objectMapper.readValue(message, RequestWrapper.class);
-            log.info("message: {}", msg);
+            Optional.ofNullable(msg.clientTraceId()).ifPresent(clientTraceId -> MDC.put(CLIENT_TRACE_ID, msg.clientTraceId()));
             final var userSession = websocketRegistry.getSession(session.getId());
+            if (userSession == null) {
+                log.warn("No open user session found, discarding message.");
+                return;
+            }
+
             if (msg.event() == null) {
+                log.warn("'event' information missing, discarding message");
                 final var errorEvent = new ErrorMessage(ErrorType.BAD_PAYLOAD, EVENT_MISSING_CLIENT_CODE, "'event' missing");
                 userSession.sendErrorMessage(errorEvent, msg.clientTraceId());
+                return;
             }
+
             if (msg.payload() == null) {
+                log.warn("'payload' missing, discarding message.");
                 final var errorEvent = new ErrorMessage(ErrorType.BAD_PAYLOAD, PAYLOAD_MISSING_CLIENT_CODE,
                         "'payload' missing");
                 userSession.sendErrorMessage(errorEvent, msg.clientTraceId());
+                return;
             }
 
+            MDC.put(EVENT_TYPE, msg.event());
+            log.info("Handling websocket client message.");
             final var messageHandler = getMessageHandler(msg.event());
             messageHandler.handle(userSession, msg);
         } catch (Exception e) {
-            log.error("Could not handle message", e);
+            log.error("Could not handle websocket client message", e);
             session.getAsyncRemote().sendText("Could not read message " + e.getMessage());
+        } finally {
+            MDC.clear();
         }
     }
 
@@ -110,8 +146,8 @@ public class SocketV1 {
         if (Objects.isNull(eventName) || eventName.isBlank()) {
             return getDefaultMessageHandler();
         }
-        final var messageHandlerInstance = messageHandlers.select(NamedLiteral.of(eventName));
 
+        final var messageHandlerInstance = messageHandlers.select(NamedLiteral.of(eventName));
         if (messageHandlerInstance.isResolvable()) {
             return messageHandlerInstance.get();
         }

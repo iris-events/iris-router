@@ -21,9 +21,9 @@ import io.vertx.core.json.JsonObject;
 /**
  * @author Tomaz Cerar
  */
-public abstract class AbstractWebSocketConsumer extends BaseConsumer {
+public abstract class AbstractRabbitMqConsumer extends BaseConsumer {
 
-    private static final Logger log = LoggerFactory.getLogger(AbstractWebSocketConsumer.class);
+    private final Logger log = LoggerFactory.getLogger(getClass());
 
     //todo use instance id
     public static final String routerId = UUID.randomUUID().toString().substring(0, 8);
@@ -34,7 +34,7 @@ public abstract class AbstractWebSocketConsumer extends BaseConsumer {
     @Inject
     RequestRegistry requestRegistry;
 
-    public AbstractWebSocketConsumer() {
+    public AbstractRabbitMqConsumer() {
     }
 
     static String trimMessage(String message) {
@@ -101,8 +101,7 @@ public abstract class AbstractWebSocketConsumer extends BaseConsumer {
 
     @Override
     public void onMessage(AmqpMessage message) {
-        log.info("got websocket message: {}", message);
-
+        log.info("Got message from backend. Looking for websocket session to forward it.");
         final String router = message.routerId();
         /*
          * boolean valid = correlationId == null;
@@ -117,19 +116,15 @@ public abstract class AbstractWebSocketConsumer extends BaseConsumer {
         final String messageBody = message.body().copy().toString(StandardCharsets.UTF_8);
         if (router != null) {
             if (!routerId.equals(router)) {
-                log.info("Message trace id '{}' does not belong to this server, message: {}", correlationId,
-                        trimMessage(messageBody));
+                log.warn("Message correlation id does not belong to this server. Discarding message.");
                 return;
             }
         }
-        final String eventType = message.eventType();
-        final String userId = message.userId();
-        final String sessionId = message.sessionId();
+
         final String currentServiceId = message.currentServiceId();
-        //        if (log.isTraceEnabled()) {
-        log.info("event: {}, userId: {}, session: {}, source: {} body: {}", eventType, userId, sessionId, currentServiceId,
-                messageBody);
-        //        }
+        if (log.isTraceEnabled()) {
+            log.info("Message source: {} body: {}", currentServiceId, messageBody);
+        }
 
         if (requestRegistry.isRequestValid(correlationId)) {
             requestRegistry.publishResponse(getSocketMessageType(), message);
@@ -143,6 +138,5 @@ public abstract class AbstractWebSocketConsumer extends BaseConsumer {
             //            }
             sendToSocket(message);
         }
-
     }
 }

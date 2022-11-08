@@ -5,14 +5,14 @@ import java.util.List;
 import javax.enterprise.context.ApplicationScoped;
 
 import id.global.core.router.model.ResponseMessageType;
-import id.global.iris.common.constants.Queues;
+import id.global.iris.common.constants.Exchanges;
 
 @ApplicationScoped
-public class WebsocketErrorConsumer extends AbstractWebSocketConsumer {
+public class RabbitMqBroadcastConsumer extends AbstractRabbitMqConsumer {
 
     @Override
     protected String getQueueName() {
-        return Queues.ERROR.getValue();
+        return Exchanges.BROADCAST.getValue();
     }
 
     @Override
@@ -22,7 +22,7 @@ public class WebsocketErrorConsumer extends AbstractWebSocketConsumer {
 
     @Override
     protected ResponseMessageType getSocketMessageType() {
-        return ResponseMessageType.ERROR;
+        return ResponseMessageType.BROADCAST;
     }
 
 }

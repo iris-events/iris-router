@@ -1,6 +1,9 @@
 package id.global.core.router.consumer;
 
+import static id.global.iris.common.constants.MessagingHeaders.Message.CLIENT_TRACE_ID;
 import static id.global.iris.common.constants.MessagingHeaders.Message.EVENT_TYPE;
+import static id.global.iris.common.constants.MessagingHeaders.Message.SESSION_ID;
+import static id.global.iris.common.constants.MessagingHeaders.Message.USER_ID;
 
 import java.util.List;
 
@@ -9,6 +12,7 @@ import javax.inject.Inject;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.slf4j.MDC;
 
 import id.global.core.router.model.AmqpMessage;
 import id.global.core.router.model.ResponseMessageType;
@@ -21,6 +25,9 @@ import io.vertx.rabbitmq.RabbitMQMessage;
 public abstract class BaseConsumer {
 
     private static final Logger log = LoggerFactory.getLogger(BaseConsumer.class);
+
+    // TODO: move to id.global.iris.common.constants.MessagingHeaders
+    public static final String CORRELATION_ID = "x-correlation-id";
 
     @Inject
     RabbitMQClient client;
@@ -50,7 +57,7 @@ public abstract class BaseConsumer {
     public abstract void onMessage(AmqpMessage message);
 
     protected String getNameSuffix(String name) {
-        return "router" + "." + name + "." + AbstractWebSocketConsumer.routerId;
+        return "router" + "." + name + "." + AbstractRabbitMqConsumer.routerId;
     }
 
     protected void setListener(String queueName) {
@@ -70,26 +77,45 @@ public abstract class BaseConsumer {
     }
 
     private void handleMessage(RabbitMQMessage message) {
-        var envelope = message.envelope();
-        var properties = message.properties();
-        var body = message.body();
-
-        // just print the received message.
-        log.info("exchange: {}, routing key: {}, deliveryTag: {}", envelope.getExchange(), envelope.getRoutingKey(),
-                envelope.getDeliveryTag());
-        log.info("properties: {}", properties);
-        Object event = properties.getHeaders().get(EVENT_TYPE);
-        if (event == null) {
-            throw new RuntimeException("Required header '" + EVENT_TYPE + "' missing on message");
-        }
-
-        AmqpMessage m = new AmqpMessage(body, properties, event.toString());
-        log.info("Received: consumerTag: {}, body: {}", message.consumerTag(), body);
         try {
+            var envelope = message.envelope();
+            var properties = message.properties();
+            var body = message.body();
+            final var correlationId = properties.getCorrelationId();
+            if (correlationId != null) {
+                MDC.put(CORRELATION_ID, correlationId);
+            }
+
+            // just print the received message.
+            log.info("exchange: {}, routing key: {}, deliveryTag: {}", envelope.getExchange(), envelope.getRoutingKey(),
+                    envelope.getDeliveryTag());
+            log.info("properties: {}", properties);
+            Object event = properties.getHeaders().get(EVENT_TYPE);
+            if (event == null) {
+                throw new RuntimeException("Required header '" + EVENT_TYPE + "' missing on message");
+            }
+
+            AmqpMessage m = new AmqpMessage(body, properties, event.toString());
+            enrichMDC(m);
+            log.info("Received: consumerTag: {}, body: {}", message.consumerTag(), body);
             onMessage(m);
         } catch (Exception e) {
             log.warn("Error handling message", e);
+        } finally {
+            MDC.clear();
         }
+    }
+
+    private static void enrichMDC(final AmqpMessage m) {
+        if (m.sessionId() != null)
+            MDC.put(SESSION_ID, m.sessionId());
+        if (m.userId() != null)
+            MDC.put(USER_ID, m.userId());
+        if (m.clientTraceId() != null)
+            MDC.put(CLIENT_TRACE_ID, m.clientTraceId());
+        if (m.correlationId() != null)
+            MDC.put(CORRELATION_ID, m.correlationId());
+        MDC.put(EVENT_TYPE, m.eventType());
     }
 
     private static Throwable findRootCause(Throwable throwable) {

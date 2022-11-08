@@ -10,8 +10,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import io.quarkus.arc.DefaultBean;
-import io.quarkus.arc.profile.IfBuildProfile;
-import io.quarkus.arc.profile.UnlessBuildProfile;
 import io.smallrye.reactive.messaging.rabbitmq.RabbitMQConnector;
 import io.vertx.rabbitmq.RabbitMQClient;
 import io.vertx.rabbitmq.RabbitMQOptions;
@@ -39,40 +37,44 @@ public class RabbitConfig {
 
     @Produces
     @DefaultBean
-    @UnlessBuildProfile("prod")
     @ApplicationScoped
     public RabbitMQOptions createDevOptions(Config config) {
         var host = config.getValue("rabbitmq-host", String.class);
-        var port = config.getValue("rabbitmq-port", Integer.class);
+        var vhost = config.getOptionalValue("rabbitmq-virtual-host", String.class).orElse("/");
+        var port = getPort(config);
+        var ssl = isSsl(config);
         var username = config.getValue("rabbitmq-username", String.class);
         var password = config.getValue("rabbitmq-password", String.class);
-        var ssl = config.getOptionalValue("rabbitmq-ssl", Boolean.class).orElse(false);
-        log.info("host: {}, port: {}, user: {}, pass: {}, ssl: {}", host, port, username, password, ssl);
-
-        var options = new RabbitMQOptions().setHost(host)
+        var options = new RabbitMQOptions()
+                .setHost(host)
+                .setVirtualHost(vhost)
                 .setPort(port)
                 .setUser(username)
                 .setPassword(password)
                 .setSsl(ssl);
-        log.info("non prod options: host: {}, port: {}, ssl: {}", options.getHost(), options.getPort(), options.isSsl());
-        return options;
 
+        log.info("Rabbit options: host: {}, port: {}, ssl: {}", options.getHost(), options.getPort(), options.isSsl());
+
+        return options;
     }
 
-    @Produces
-    @DefaultBean
-    @IfBuildProfile("prod")
-    @ApplicationScoped
-    public RabbitMQOptions createProdOptions(Config config) {
-        var rabbitUrl = config.getValue("quarkus.iris.rabbitmq.url", String.class);
-        var rabbitUsername = config.getValue("quarkus.iris.rabbitmq.username", String.class);
-        var rabbitPassword = config.getValue("quarkus.iris.rabbitmq.password", String.class);
-        log.info("need to configure prod, url: {}", rabbitUrl);
-        return new RabbitMQOptions().setTrustAll(false)
-                .setAutomaticRecoveryEnabled(true)
-                .setUser(rabbitUsername)
-                .setPassword(rabbitPassword)
-                .setUri(rabbitUrl);
+    public int getPort(final Config config) {
+        final var protocol = config.getOptionalValue("rabbitmq-protocol", String.class);
+        final var port = config.getOptionalValue("rabbitmq-port", Integer.class);
+        return protocol.map(p -> switch (p) {
+            case "amqp" -> port.orElse(5672);
+            case "amqps" -> port.orElse(5671);
+            default -> throw new IllegalStateException("Unknown protocol value: " + p);
+        }).orElseGet(() -> port.orElse(5672));
+    }
 
+    public boolean isSsl(final Config config) {
+        final var protocol = config.getOptionalValue("rabbitmq-protocol", String.class);
+        final var ssl = config.getOptionalValue("rabbitmq-ssl", Boolean.class);
+        return protocol.map(p -> switch (p) {
+            case "amqp" -> ssl.orElse(false);
+            case "amqps" -> ssl.orElse(true);
+            default -> throw new IllegalStateException("Unknown protocol value: " + p);
+        }).orElseGet(() -> ssl.orElse(false));
     }
 }

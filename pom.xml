@@ -21,6 +21,7 @@
     <properties>
         <version.globalid.iris-subscription-models>1.0.10</version.globalid.iris-subscription-models>
         <version.controlplane-api>0.1.35</version.controlplane-api>
+        <version.iris>3.0.3</version.iris>
     </properties>
     <dependencyManagement>
         <dependencies>
@@ -42,6 +43,11 @@
         </dependencies>
     </dependencyManagement>
     <dependencies>
+        <!-- kubernetes configuration -->
+        <dependency>
+            <groupId>io.quarkus</groupId>
+            <artifactId>quarkus-kubernetes</artifactId>
+        </dependency>
         <dependency>
             <groupId>id.global.iris</groupId>
             <artifactId>iris-common</artifactId>

@@ -8,11 +8,11 @@ import id.global.core.router.model.ResponseMessageType;
 import id.global.iris.common.constants.Exchanges;
 
 @ApplicationScoped
-public class WebsocketBroadcastConsumer extends AbstractWebSocketConsumer {
+public class RabbitMqSessionConsumer extends AbstractRabbitMqConsumer {
 
     @Override
     protected String getQueueName() {
-        return Exchanges.BROADCAST.getValue();
+        return Exchanges.SESSION.getValue();
     }
 
     @Override
@@ -22,7 +22,7 @@ public class WebsocketBroadcastConsumer extends AbstractWebSocketConsumer {
 
     @Override
     protected ResponseMessageType getSocketMessageType() {
-        return ResponseMessageType.BROADCAST;
+        return ResponseMessageType.SESSION;
     }
 
 }
