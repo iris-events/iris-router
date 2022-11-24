@@ -1,5 +1,7 @@
 package id.global.core.router.service;
 
+import java.util.UUID;
+
 import javax.enterprise.context.ApplicationScoped;
 import javax.enterprise.event.Observes;
 import javax.inject.Inject;
@@ -59,7 +61,8 @@ public class BackendService {
     public void sendIrisEventToBackend(final UserSession userSession, final String clientTraceId, final Object message) {
         final var messageAnnotation = message.getClass().getAnnotation(Message.class);
         final var name = ExchangeParser.getFromAnnotationClass(messageAnnotation);
-        final var msg = new RequestWrapper(name, clientTraceId, objectMapper.valueToTree(message));
+        final var msg = new RequestWrapper(name, clientTraceId, UUID.randomUUID().toString(),
+                objectMapper.valueToTree(message));
 
         final var amqpMessage = userSession.createBackendRequest(msg);
 

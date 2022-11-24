@@ -49,7 +49,7 @@ public class SubscribeMessageHandler implements MessageHandler {
                 final var userAuthenticatedEvent = new UserAuthenticatedEvent();
                 userSession.sendEvent(userAuthenticatedEvent, clientTraceId);
                 final var userAuthenticated = new UserAuthenticated(userSession.getUserId());
-                // TODO: do not emit yet, we need to declare queue first
+                // TODO: do not emit yet, we need to declare queue first and add correlationId to the me
                 // sendIrisEventToBackend(userSession, clientTraceId, userAuthenticated);
             } else {
                 final var errorEvent = new ErrorEvent(ErrorType.AUTHENTICATION_FAILED, AUTHORIZATION_FAILED_CLIENT_CODE,

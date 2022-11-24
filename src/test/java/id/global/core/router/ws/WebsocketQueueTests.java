@@ -1,7 +1,6 @@
 package id.global.core.router.ws;
 
 import static id.global.iris.common.constants.MessagingHeaders.Message.EVENT_TYPE;
-import static id.global.iris.common.constants.MessagingHeaders.Message.ORIGIN_SERVICE_ID;
 
 import java.util.Map;
 import java.util.UUID;

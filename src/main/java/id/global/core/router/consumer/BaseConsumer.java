@@ -1,9 +1,6 @@
 package id.global.core.router.consumer;
 
-import static id.global.iris.common.constants.MessagingHeaders.Message.CLIENT_TRACE_ID;
 import static id.global.iris.common.constants.MessagingHeaders.Message.EVENT_TYPE;
-import static id.global.iris.common.constants.MessagingHeaders.Message.SESSION_ID;
-import static id.global.iris.common.constants.MessagingHeaders.Message.USER_ID;
 
 import java.util.List;
 
@@ -16,7 +13,9 @@ import org.slf4j.MDC;
 
 import id.global.core.router.model.AmqpMessage;
 import id.global.core.router.model.ResponseMessageType;
+import id.global.iris.common.constants.MDCProperties;
 import io.quarkus.runtime.StartupEvent;
+import io.smallrye.reactive.messaging.providers.helpers.VertxContext;
 import io.vertx.rabbitmq.QueueOptions;
 import io.vertx.rabbitmq.RabbitMQClient;
 import io.vertx.rabbitmq.RabbitMQConsumer;
@@ -25,9 +24,6 @@ import io.vertx.rabbitmq.RabbitMQMessage;
 public abstract class BaseConsumer {
 
     private static final Logger log = LoggerFactory.getLogger(BaseConsumer.class);
-
-    // TODO: move to id.global.iris.common.constants.MessagingHeaders
-    public static final String CORRELATION_ID = "x-correlation-id";
 
     @Inject
     RabbitMQClient client;
@@ -68,7 +64,10 @@ public abstract class BaseConsumer {
         client.basicConsumer(queueName, options, result -> {
             if (result.succeeded()) {
                 RabbitMQConsumer mqConsumer = result.result();
-                mqConsumer.handler(this::handleMessage);
+                mqConsumer.handler(message -> {
+                    final var newDuplicatedContext = VertxContext.createNewDuplicatedContext();
+                    VertxContext.runOnContext(newDuplicatedContext, () -> handleMessage(message));
+                });
                 log.info("consumer started on '{}' --> {} --> {}", getQueueName(), getSocketMessageType(), getQueueRoles());
             } else {
                 log.error("error", result.cause());
@@ -83,7 +82,7 @@ public abstract class BaseConsumer {
             var body = message.body();
             final var correlationId = properties.getCorrelationId();
             if (correlationId != null) {
-                MDC.put(CORRELATION_ID, correlationId);
+                MDC.put(MDCProperties.CORRELATION_ID, correlationId);
             }
 
             // just print the received message.
@@ -108,14 +107,14 @@ public abstract class BaseConsumer {
 
     private static void enrichMDC(final AmqpMessage m) {
         if (m.sessionId() != null)
-            MDC.put(SESSION_ID, m.sessionId());
+            MDC.put(MDCProperties.SESSION_ID, m.sessionId());
         if (m.userId() != null)
-            MDC.put(USER_ID, m.userId());
+            MDC.put(MDCProperties.USER_ID, m.userId());
         if (m.clientTraceId() != null)
-            MDC.put(CLIENT_TRACE_ID, m.clientTraceId());
+            MDC.put(MDCProperties.CLIENT_TRACE_ID, m.clientTraceId());
         if (m.correlationId() != null)
-            MDC.put(CORRELATION_ID, m.correlationId());
-        MDC.put(EVENT_TYPE, m.eventType());
+            MDC.put(MDCProperties.CORRELATION_ID, m.correlationId());
+        MDC.put(MDCProperties.EVENT_TYPE, m.eventType());
     }
 
     private static Throwable findRootCause(Throwable throwable) {

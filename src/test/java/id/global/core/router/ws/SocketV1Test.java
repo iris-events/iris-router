@@ -132,7 +132,7 @@ class SocketV1Test {
     class OnMessageNested {
 
         public static final String MESSAGE_PLACEHOLDER = """
-                {"event": "%s", "payload": %s}
+                {"event": "%s", "payload": %s, "clientTraceId": "1234"}
                 """;
 
         private Session session;

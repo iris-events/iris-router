@@ -250,10 +250,10 @@ public class UserSession {
             var copy = new HashMap<>(headers);
             log.trace("[{}] backend payload: {},  headers: {}", getUserId(), requestMessage.payload(), copy);
         }
-        String correlationId = UUID.randomUUID().toString();
+
         final AMQP.BasicProperties messageProperties = new AMQP.BasicProperties()
                 .builder()
-                .correlationId(correlationId)
+                .correlationId(requestMessage.correlationId())
                 .timestamp(new Date())
                 .headers(headers)
                 .build();
