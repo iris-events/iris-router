@@ -10,7 +10,7 @@
     </parent>
     <groupId>id.global.iris</groupId>
     <artifactId>router</artifactId>
-    <version>1.0.10-SNAPSHOT</version>
+    <version>1.0.10</version>
     <scm>
         <connection>scm:git:git@github.com:globalid/core-router.git</connection>
         <developerConnection>scm:git:git@github.com:globalid/core-router.git</developerConnection>
@@ -21,7 +21,6 @@
     <properties>
         <version.globalid.iris-subscription-models>1.0.10</version.globalid.iris-subscription-models>
         <version.controlplane-api>0.1.35</version.controlplane-api>
-        <version.iris>3.0.3</version.iris>
     </properties>
     <dependencyManagement>
         <dependencies>

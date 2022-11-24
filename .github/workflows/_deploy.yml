@@ -26,6 +26,5 @@ jobs:
     needs:
       - wait
     uses: globalid/.github/.github/workflows/deploy-k8s-quarkus.yml@master
-#    uses: ./.github/workflows/deploy-to-k8s.yml
     secrets: inherit
 

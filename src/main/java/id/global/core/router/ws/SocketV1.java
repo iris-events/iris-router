@@ -2,15 +2,13 @@ package id.global.core.router.ws;
 
 import static id.global.core.router.events.ErrorEvent.EVENT_MISSING_CLIENT_CODE;
 import static id.global.core.router.events.ErrorEvent.PAYLOAD_MISSING_CLIENT_CODE;
-import static id.global.iris.common.constants.MessagingHeaders.Message.CLIENT_TRACE_ID;
-import static id.global.iris.common.constants.MessagingHeaders.Message.EVENT_TYPE;
-import static id.global.iris.common.constants.MessagingHeaders.Message.SESSION_ID;
 
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.UUID;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.enterprise.inject.Any;
@@ -37,7 +35,7 @@ import id.global.core.router.service.BackendService;
 import id.global.core.router.service.WebsocketRegistry;
 import id.global.core.router.ws.message.handler.DefaultHandler;
 import id.global.core.router.ws.message.handler.MessageHandler;
-import id.global.iris.common.constants.MessagingHeaders;
+import id.global.iris.common.constants.MDCProperties;
 import id.global.iris.common.error.ErrorType;
 import id.global.iris.common.message.ErrorMessage;
 import id.global.iris.irissubscription.SessionClosed;
@@ -59,36 +57,28 @@ public class SocketV1 {
 
     @OnOpen
     public void onOpen(Session session, EndpointConfig conf) {
-        try {
-            MDC.put(SESSION_ID, session.getId());
-            log.info("Web socket opened. userProperties: {} ", conf.getUserProperties());
-            Map<String, List<String>> headers = Optional
-                    .ofNullable((Map<String, List<String>>) conf.getUserProperties().remove("headers"))
-                    .orElse(Collections.emptyMap());
-            var userSession = websocketRegistry.startSession(session, headers);
-            conf.getUserProperties().put("user-session", userSession);
-        } finally {
-            MDC.clear();
-        }
+        MDC.put(MDCProperties.SESSION_ID, session.getId());
+        log.info("Web socket opened. userProperties: {} ", conf.getUserProperties());
+        Map<String, List<String>> headers = Optional
+                .ofNullable((Map<String, List<String>>) conf.getUserProperties().remove("headers"))
+                .orElse(Collections.emptyMap());
+        var userSession = websocketRegistry.startSession(session, headers);
+        conf.getUserProperties().put("user-session", userSession);
     }
 
     @OnClose
     public void onClose(Session session, CloseReason reason) {
-        try {
-            MDC.put(SESSION_ID, session.getId());
-            var userSession = websocketRegistry.removeSocket(session.getId());
-            Optional.ofNullable(userSession).ifPresent(us -> MDC.put(MessagingHeaders.Message.USER_ID, us.getUserId()));
-            log.info("Closing websocket user session. reason: {}, closeCode: {}", reason.getReasonPhrase(),
-                    reason.getCloseCode());
-            if (userSession != null) {
-                userSession.close(reason);
-                final var userId = userSession.getUserId();
-                final var sessionId = userSession.getId();
-                final var sessionClosed = new SessionClosed(sessionId, userId);
-                backendService.sendIrisEventToBackend(userSession, null, sessionClosed);
-            }
-        } finally {
-            MDC.clear();
+        MDC.put(MDCProperties.SESSION_ID, session.getId());
+        var userSession = websocketRegistry.removeSocket(session.getId());
+        Optional.ofNullable(userSession).ifPresent(us -> MDC.put(MDCProperties.USER_ID, us.getUserId()));
+        log.info("Closing websocket user session. reason: {}, closeCode: {}", reason.getReasonPhrase(),
+                reason.getCloseCode());
+        if (userSession != null) {
+            userSession.close(reason);
+            final var userId = userSession.getUserId();
+            final var sessionId = userSession.getId();
+            final var sessionClosed = new SessionClosed(sessionId, userId);
+            backendService.sendIrisEventToBackend(userSession, null, sessionClosed);
         }
     }
 
@@ -101,14 +91,19 @@ public class SocketV1 {
     @OnMessage
     public void onMessage(Session session, String message) {
         try {
-            MDC.put(SESSION_ID, session.getId());
+            MDC.put(MDCProperties.SESSION_ID, session.getId());
             if (message.isEmpty()) {
                 log.warn("Received empty message, discarding message.");
                 return;
             }
 
-            final var msg = objectMapper.readValue(message, RequestWrapper.class);
-            Optional.ofNullable(msg.clientTraceId()).ifPresent(clientTraceId -> MDC.put(CLIENT_TRACE_ID, msg.clientTraceId()));
+            final var msgFromClient = objectMapper.readValue(message, RequestWrapper.class);
+            final var correlationId = UUID.randomUUID().toString();
+            MDC.put(MDCProperties.CORRELATION_ID, correlationId);
+            final var msg = msgFromClient.withCorrelationId(correlationId);
+
+            Optional.ofNullable(msg.clientTraceId())
+                    .ifPresent(clientTraceId -> MDC.put(MDCProperties.CLIENT_TRACE_ID, msg.clientTraceId()));
             final var userSession = websocketRegistry.getSession(session.getId());
             if (userSession == null) {
                 log.warn("No open user session found, discarding message.");
@@ -130,15 +125,13 @@ public class SocketV1 {
                 return;
             }
 
-            MDC.put(EVENT_TYPE, msg.event());
+            MDC.put(MDCProperties.EVENT_TYPE, msg.event());
             log.info("Handling websocket client message.");
             final var messageHandler = getMessageHandler(msg.event());
             messageHandler.handle(userSession, msg);
         } catch (Exception e) {
             log.error("Could not handle websocket client message", e);
             session.getAsyncRemote().sendText("Could not read message " + e.getMessage());
-        } finally {
-            MDC.clear();
         }
     }
 
