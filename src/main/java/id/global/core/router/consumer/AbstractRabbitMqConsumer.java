@@ -101,7 +101,7 @@ public abstract class AbstractRabbitMqConsumer extends BaseConsumer {
 
     @Override
     public void onMessage(AmqpMessage message) {
-        log.info("Got message from backend. Looking for websocket session to forward it.");
+        log.debug("Got message from backend. Looking for websocket session to forward it.");
         final String router = message.routerId();
         /*
          * boolean valid = correlationId == null;

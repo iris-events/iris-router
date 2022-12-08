@@ -10,7 +10,7 @@
     </parent>
     <groupId>id.global.iris</groupId>
     <artifactId>router</artifactId>
-    <version>1.0.10</version>
+    <version>1.0.10-SNAPSHOT</version>
     <scm>
         <connection>scm:git:git@github.com:globalid/core-router.git</connection>
         <developerConnection>scm:git:git@github.com:globalid/core-router.git</developerConnection>
@@ -42,11 +42,6 @@
         </dependencies>
     </dependencyManagement>
     <dependencies>
-        <!-- kubernetes configuration -->
-        <dependency>
-            <groupId>io.quarkus</groupId>
-            <artifactId>quarkus-kubernetes</artifactId>
-        </dependency>
         <dependency>
             <groupId>id.global.iris</groupId>
             <artifactId>iris-common</artifactId>
