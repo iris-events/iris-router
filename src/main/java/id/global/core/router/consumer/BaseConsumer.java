@@ -77,7 +77,6 @@ public abstract class BaseConsumer {
 
     private void handleMessage(RabbitMQMessage message) {
         try {
-            var envelope = message.envelope();
             var properties = message.properties();
             var body = message.body();
             final var correlationId = properties.getCorrelationId();
@@ -85,10 +84,6 @@ public abstract class BaseConsumer {
                 MDC.put(MDCProperties.CORRELATION_ID, correlationId);
             }
 
-            // just print the received message.
-            log.info("exchange: {}, routing key: {}, deliveryTag: {}", envelope.getExchange(), envelope.getRoutingKey(),
-                    envelope.getDeliveryTag());
-            log.info("properties: {}", properties);
             Object event = properties.getHeaders().get(EVENT_TYPE);
             if (event == null) {
                 throw new RuntimeException("Required header '" + EVENT_TYPE + "' missing on message");
@@ -96,7 +91,6 @@ public abstract class BaseConsumer {
 
             AmqpMessage m = new AmqpMessage(body, properties, event.toString());
             enrichMDC(m);
-            log.info("Received: consumerTag: {}, body: {}", message.consumerTag(), body);
             onMessage(m);
         } catch (Exception e) {
             log.warn("Error handling message", e);

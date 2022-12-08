@@ -38,7 +38,7 @@ public class RabbitConfig {
     @Produces
     @DefaultBean
     @ApplicationScoped
-    public RabbitMQOptions createDevOptions(Config config) {
+    public RabbitMQOptions createOptions(Config config) {
         var host = config.getValue("rabbitmq-host", String.class);
         var vhost = config.getOptionalValue("rabbitmq-virtual-host", String.class).orElse("/");
         var port = getPort(config);

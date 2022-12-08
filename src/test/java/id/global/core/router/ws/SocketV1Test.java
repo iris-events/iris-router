@@ -41,6 +41,10 @@ import io.quarkus.test.junit.QuarkusTest;
 @QuarkusTest
 class SocketV1Test {
 
+    public static final String MESSAGE_PLACEHOLDER = """
+            {"event": "%s", "payload": %s, "clientTraceId": "1234"}
+            """;
+
     SocketV1 socketV1;
 
     WebsocketRegistry websocketRegistry;
@@ -117,23 +121,17 @@ class SocketV1Test {
         final var messageHandler = mock(MessageHandler.class);
         when(messageHandlerInstance.get()).thenReturn(messageHandler);
         when(messageHandlers.select(any(Annotation.class))).thenReturn(messageHandlerInstance);
-        final var message = "test message";
-        doThrow(new RuntimeException(message)).when(messageHandler).handle(any(), any());
+        final var errorMessage = "test message";
+        doThrow(new RuntimeException(errorMessage)).when(messageHandler).handle(any(), any());
 
-        final var messageContent = """
-                { "event": "test", "payload": {  "foo": "bar" }}
-                """;
-        socketV1.onMessage(session, messageContent);
+        final var message = MESSAGE_PLACEHOLDER.formatted("test", "{  \"foo\": \"bar\" }");
+        socketV1.onMessage(session, message);
 
-        verify(async).sendText("Could not read message " + message);
+        verify(async).sendText("Could not read message " + errorMessage);
     }
 
     @Nested
     class OnMessageNested {
-
-        public static final String MESSAGE_PLACEHOLDER = """
-                {"event": "%s", "payload": %s, "clientTraceId": "1234"}
-                """;
 
         private Session session;
         private UserSession userSession;
