@@ -46,7 +46,7 @@ public class SocketV1 {
     private static final Logger log = LoggerFactory.getLogger(SocketV1.class);
 
     @Inject
-    protected ObjectMapper objectMapper;
+    ObjectMapper objectMapper;
     @Inject
     WebsocketRegistry websocketRegistry;
     @Inject
@@ -126,7 +126,7 @@ public class SocketV1 {
             }
 
             MDC.put(MDCProperties.EVENT_TYPE, msg.event());
-            log.info("Handling websocket client message.");
+            //log.info("Handling websocket client message.");
             final var messageHandler = getMessageHandler(msg.event());
             messageHandler.handle(userSession, msg);
         } catch (Exception e) {

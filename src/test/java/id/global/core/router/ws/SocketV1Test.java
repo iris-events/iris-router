@@ -5,12 +5,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoInteractions;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 import java.lang.annotation.Annotation;
 import java.util.UUID;
@@ -133,9 +128,9 @@ class SocketV1Test {
     @Nested
     class OnMessageNested {
 
+        private final String event = "test";
         private Session session;
         private UserSession userSession;
-        private final String event = "test";
 
         @BeforeEach
         void beforeEach() {

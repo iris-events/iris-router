@@ -1,17 +1,17 @@
-version: '3.8'
+version: '3.9'
 
 
 services:
   rabbitmq:
-    image: rabbitmq:3.8-management-alpine
+    image: rabbitmq:3.10-management-alpine
     restart: always
     ports:
       - 5672:5672
       - 15672:15672
 
-  redis:
-    image: "redis:alpine"
-    #command: redis-server --requirepass password
-    command: redis-server
-    ports:
-      - "6379:6379"
+  #redis:
+  #  image: "redis:alpine"
+  #  #command: redis-server --requirepass password
+  # command: redis-server
+  #  ports:
+  #    - "6379:6379"

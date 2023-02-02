@@ -4,6 +4,7 @@ import java.util.Set;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.slf4j.MDC;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -30,6 +31,11 @@ public class WSResponseHandler extends DefaultResponseHandler {
 
     @Override
     protected void onSuccess(ResponseMessageType responseMessageType, AmqpMessage message) {
+        MDC.put("sessionId", message.sessionId());
+        MDC.put("clientTraceId", message.clientTraceId());
+        MDC.put("correlationId", message.correlationId());
+        MDC.put("eventType", message.eventType());
+        MDC.put("userId", message.userId());
         if (responseMessageType == ResponseMessageType.RPC) {
             sendRPCMessage(message);
         } else if (responseMessageType == ResponseMessageType.SESSION) {
