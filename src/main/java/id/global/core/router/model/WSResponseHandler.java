@@ -32,7 +32,9 @@ public class WSResponseHandler extends DefaultResponseHandler {
     @Override
     protected void onSuccess(ResponseMessageType responseMessageType, AmqpMessage message) {
         MDC.put("sessionId", message.sessionId());
-        MDC.put("clientTraceId", message.clientTraceId());
+        if (message.clientTraceId() != null) {
+            MDC.put("clientTraceId", message.clientTraceId());
+        }
         MDC.put("correlationId", message.correlationId());
         MDC.put("eventType", message.eventType());
         MDC.put("userId", message.userId());
