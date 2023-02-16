@@ -1,9 +1,11 @@
 package id.global.core.router.events;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 import id.global.iris.common.constants.Exchanges;
 import id.global.iris.common.error.ErrorType;
 
-public record ErrorEvent(ErrorType errorType, String code, String message) implements RouterEvent {
+public record ErrorEvent(@JsonProperty("error_type") ErrorType errorType, String code, String message) implements RouterEvent {
 
     public static final String AUTHORIZATION_FAILED_CLIENT_CODE = "AUTHORIZATION_FAILED";
     public static final String EVENT_MISSING_CLIENT_CODE = "EVENT_MISSING";
