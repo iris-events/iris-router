@@ -31,13 +31,19 @@ public class WSResponseHandler extends DefaultResponseHandler {
 
     @Override
     protected void onSuccess(ResponseMessageType responseMessageType, AmqpMessage message) {
-        MDC.put("sessionId", message.sessionId());
+        if (message.sessionId() != null) {
+            MDC.put("sessionId", message.sessionId());
+        }
         if (message.clientTraceId() != null) {
             MDC.put("clientTraceId", message.clientTraceId());
         }
-        MDC.put("correlationId", message.correlationId());
+        if (message.correlationId() != null) {
+            MDC.put("correlationId", message.correlationId());
+        }
         MDC.put("eventType", message.eventType());
-        MDC.put("userId", message.userId());
+        if (message.userId() != null) {
+            MDC.put("userId", message.userId());
+        }
         if (responseMessageType == ResponseMessageType.RPC) {
             sendRPCMessage(message);
         } else if (responseMessageType == ResponseMessageType.SESSION) {
