@@ -34,6 +34,7 @@ public class WebsocketRegistry {
 
     protected static final Set<String> NON_RPC_DATATYPES = Set.of("subscribe-message",
             "unsubscribe-message",
+            "session-closed",
             "log-users-activity");
     private final WSResponseHandler responseHandler;
     private final ObjectMapper objectMapper;

@@ -1,7 +1,5 @@
 package id.global.core.router.service;
 
-import java.util.UUID;
-
 import javax.enterprise.context.ApplicationScoped;
 import javax.enterprise.event.Observes;
 import javax.inject.Inject;
@@ -15,6 +13,7 @@ import id.global.core.router.model.AmqpMessage;
 import id.global.core.router.model.RequestWrapper;
 import id.global.core.router.model.UserSession;
 import id.global.iris.common.annotations.Message;
+import id.global.iris.common.annotations.Scope;
 import id.global.iris.common.constants.Exchanges;
 import id.global.iris.parsers.ExchangeParser;
 import io.quarkus.runtime.StartupEvent;
@@ -51,21 +50,31 @@ public class BackendService {
         });
     }
 
-    public void sendToBackend(String eventType, AmqpMessage message) {
+    private void sendToBackend(Scope scope, AmqpMessage message) {
+        String eventType = message.eventType();
         websocketRegistry.registerRequest(message);
-
-        log.info("Publishing message to backend '{}' - {}", FRONTEND_EXCHANGE, eventType);
-        client.basicPublish(FRONTEND_EXCHANGE, eventType, message.properties(), message.body());
+        if (scope == Scope.FRONTEND) {
+            log.info("Publishing front message to backend '{}' - {}", FRONTEND_EXCHANGE, eventType);
+            client.basicPublish(FRONTEND_EXCHANGE, eventType, message.properties(), message.body());
+        } else if (scope == Scope.INTERNAL) {
+            log.info("publishing internal message to '{}' ", eventType);
+            client.basicPublish(eventType, "", message.properties(), message.body());
+        } else {
+            throw new RuntimeException("Cannot send message of scope " + scope);
+        }
     }
 
-    public void sendIrisEventToBackend(final UserSession userSession, final String clientTraceId, final Object message) {
+    public void sendFrontendEvent(UserSession userSession, RequestWrapper requestWrapper) {
+        final var message = userSession.createBackendRequest(requestWrapper);
+        sendToBackend(Scope.FRONTEND, message);
+    }
+
+    public void sendInternalEvent(final UserSession userSession, final String clientTraceId, final Object message) {
         final var messageAnnotation = message.getClass().getAnnotation(Message.class);
         final var name = ExchangeParser.getFromAnnotationClass(messageAnnotation);
-        final var msg = new RequestWrapper(name, clientTraceId, UUID.randomUUID().toString(),
-                objectMapper.valueToTree(message));
-
+        final var msg = new RequestWrapper(name, clientTraceId, objectMapper.valueToTree(message));
         final var amqpMessage = userSession.createBackendRequest(msg);
 
-        sendToBackend(name, amqpMessage);
+        sendToBackend(Scope.INTERNAL, amqpMessage);
     }
 }

@@ -10,9 +10,10 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
  * @author Tomaz Cerar
  */
 public record RequestWrapper(String event,
-        @JsonProperty("client_trace_id") @JsonAlias({"clientTraceId"}) String clientTraceId,
-        @JsonProperty("correlation_id") @JsonAlias({"correlationId"}) String correlationId,
-        @JsonProperty("payload") ObjectNode payload) {
+        @JsonProperty("client_trace_id") @JsonAlias( {
+                "clientTraceId" }) String clientTraceId,
+        @JsonProperty("correlation_id") @JsonAlias({ "correlationId" }) String correlationId,
+        @JsonProperty("payload") ObjectNode payload){
 
     public RequestWrapper(final String event, final String clientTraceId, final ObjectNode payload) {
         this(event, clientTraceId, UUID.randomUUID().toString(), payload);

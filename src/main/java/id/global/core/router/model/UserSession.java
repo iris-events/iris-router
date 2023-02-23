@@ -19,14 +19,7 @@ import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.nio.ByteBuffer;
 import java.time.Instant;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 
 import javax.websocket.CloseReason;
 import javax.websocket.Session;
@@ -140,7 +133,7 @@ public class UserSession {
     public void sendMessageRaw(final RawMessage rawMessage, final String clientTraceId) {
         final var stringMessage = rawMessage.getMessage();
         if (log.isTraceEnabled()) {
-            log.trace("session: {}, message: {}", socketId, stringMessage);
+            log.info("message: {}", stringMessage);
         }
 
         if (!isValid()) {
@@ -241,7 +234,7 @@ public class UserSession {
 
     public AmqpMessage createBackendRequest(RequestWrapper requestMessage) {
         var eventType = requestMessage.event();
-        var headers = new HashMap<String, Object>();
+        var headers = new LinkedHashMap<String, Object>();
         setBackendMessageHeaders(headers);
         headers.put(EVENT_TYPE, eventType);
         headers.put(CLIENT_TRACE_ID, requestMessage.clientTraceId());

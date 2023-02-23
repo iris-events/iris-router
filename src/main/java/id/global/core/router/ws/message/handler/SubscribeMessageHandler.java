@@ -79,6 +79,6 @@ public class SubscribeMessageHandler implements MessageHandler {
 
         // create new subscription service specific event to omit token
         final var subscribeResources = new id.global.iris.irissubscription.Subscribe(subscribe.getResources());
-        backendService.sendIrisEventToBackend(userSession, clientTraceId, subscribeResources);
+        backendService.sendInternalEvent(userSession, clientTraceId, subscribeResources);
     }
 }

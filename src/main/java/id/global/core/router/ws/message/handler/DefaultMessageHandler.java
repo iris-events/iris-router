@@ -20,7 +20,6 @@ public class DefaultMessageHandler implements MessageHandler {
             userSession.sendSessionInvalidError(requestWrapper.clientTraceId());
             return;
         }
-        final var backendRequest = userSession.createBackendRequest(requestWrapper);
-        backendService.sendToBackend(requestWrapper.event(), backendRequest);
+        backendService.sendFrontendEvent(userSession, requestWrapper);
     }
 }

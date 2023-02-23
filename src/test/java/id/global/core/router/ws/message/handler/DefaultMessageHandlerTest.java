@@ -44,6 +44,6 @@ class DefaultMessageHandlerTest {
 
         messageHandler.handle(userSession, requestWrapper);
 
-        verify(backendService).sendToBackend(requestWrapper.event(), amqpMessage);
+        verify(backendService).sendFrontendEvent(userSession, requestWrapper);
     }
 }

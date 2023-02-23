@@ -78,7 +78,7 @@ public class SocketV1 {
             final var userId = userSession.getUserId();
             final var sessionId = userSession.getId();
             final var sessionClosed = new SessionClosed(sessionId, userId);
-            backendService.sendIrisEventToBackend(userSession, null, sessionClosed);
+            backendService.sendInternalEvent(userSession, null, sessionClosed);
         }
     }
 

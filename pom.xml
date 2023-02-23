@@ -18,7 +18,7 @@
     </scm>
 
     <properties>
-        <version.globalid.iris-subscription-models>1.0.10</version.globalid.iris-subscription-models>
+        <version.globalid.iris-subscription-models>1.0.13</version.globalid.iris-subscription-models>
     </properties>
     <dependencyManagement>
         <dependencies>
@@ -37,6 +37,23 @@
                 <artifactId>iris-asyncapi</artifactId>
                 <version>${version.iris}</version>
             </dependency>
+            <!-- here just to override versions, should be gone once upstream is fixed -->
+            <dependency>
+                <groupId>io.smallrye.reactive</groupId>
+                <artifactId>smallrye-reactive-messaging-rabbitmq</artifactId>
+                <version>3.23.0</version>
+            </dependency>
+            <dependency>
+                <groupId>io.vertx</groupId>
+                <artifactId>vertx-rabbitmq-client</artifactId>
+                <version>4.3.8</version>
+            </dependency>
+            <dependency>
+                <groupId>com.rabbitmq</groupId>
+                <artifactId>amqp-client</artifactId>
+                <version>5.16.0</version>
+            </dependency>
+            <!-- end overrides -->
         </dependencies>
     </dependencyManagement>
     <dependencies>
@@ -64,6 +81,7 @@
             <groupId>id.global.iris</groupId>
             <artifactId>iris-subscription-models</artifactId>
         </dependency>
+
         <dependency>
             <groupId>io.quarkus</groupId>
             <artifactId>quarkus-smallrye-reactive-messaging-rabbitmq</artifactId>

@@ -125,7 +125,7 @@ class SubscribeMessageHandlerTest {
 
         messageHandler.handle(userSession, requestWrapper);
 
-        verify(backendService).sendIrisEventToBackend(userSession, requestWrapper.clientTraceId(),
+        verify(backendService).sendInternalEvent(userSession, requestWrapper.clientTraceId(),
                 new id.global.iris.irissubscription.Subscribe(resources));
     }
 }

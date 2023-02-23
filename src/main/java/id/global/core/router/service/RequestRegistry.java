@@ -35,14 +35,14 @@ public class RequestRegistry {
     private static final Duration requestExpirationTime = Duration.ofSeconds(30);
 
     private final ConcurrentHashMap<String, BackendRequest> requests = new ConcurrentHashMap<>();
-    private final int requestTimeLogThreshold = 5; // 5ms
+    private final int requestTimeLogThreshold = 10; // 5ms
 
     public RequestRegistry() {
 
     }
 
     private void registerNewRequest(BackendRequest request) {
-        requestLogger.info("registering request {}", request);
+        requestLogger.trace("registering request {}", request);
         requests.put(request.requestId(), request);
     }
 
@@ -66,7 +66,9 @@ public class RequestRegistry {
                         request.requestBody(), duration.toMillis());
             }
             handler.handle(messageType, message);
-            requestLogger.info("Request handled successfully - removing request.");
+            if (requestLogger.isTraceEnabled()) {
+                requestLogger.info("Request handled successfully - removing request.");
+            }
             requests.remove(correlationId);
         } else {
             requestErrorLogger.warn("Could not properly handle message, request/correlation id no longer active.");
