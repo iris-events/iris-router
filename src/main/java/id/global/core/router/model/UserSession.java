@@ -237,7 +237,9 @@ public class UserSession {
         var headers = new LinkedHashMap<String, Object>();
         setBackendMessageHeaders(headers);
         headers.put(EVENT_TYPE, eventType);
-        headers.put(CLIENT_TRACE_ID, requestMessage.clientTraceId());
+        if (requestMessage.clientTraceId() != null) {
+            headers.put(CLIENT_TRACE_ID, requestMessage.clientTraceId());
+        }
         headers.put(REQUEST_VIA, "router/WebSocket");
         if (log.isTraceEnabled()) {
             var copy = new HashMap<>(headers);
