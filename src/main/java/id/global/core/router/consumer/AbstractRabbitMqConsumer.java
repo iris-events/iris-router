@@ -92,7 +92,7 @@ public abstract class AbstractRabbitMqConsumer extends BaseConsumer {
             }
         }
         if (handlers.isEmpty()) {
-            log.trace("Got message that we cannot find response handler for: sessionId: {}, userId: {}, event: {}",
+            log.warn("Got message that we cannot find response handler for: sessionId: {}, userId: {}, event: {}",
                     sessionId, userId, message.eventType());
             handlers.add(websocketRegistry.getResponseHandler());
         }

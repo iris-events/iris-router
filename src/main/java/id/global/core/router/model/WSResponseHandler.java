@@ -44,8 +44,8 @@ public class WSResponseHandler extends DefaultResponseHandler {
         if (message.userId() != null) {
             MDC.put("userId", message.userId());
         }
-        if (responseMessageType == ResponseMessageType.RPC) {
-            sendRPCMessage(message);
+        if (responseMessageType == ResponseMessageType.USER) {
+            sendUserMessage(message);
         } else if (responseMessageType == ResponseMessageType.SESSION) {
             sendToSession(message);
         } else if (responseMessageType == ResponseMessageType.BROADCAST) {
@@ -78,12 +78,13 @@ public class WSResponseHandler extends DefaultResponseHandler {
         session.sendMessage(message);
     }
 
-    private void sendRPCMessage(AmqpMessage message) {
+    private void sendUserMessage(AmqpMessage message) {
         String userId = message.userId();
+        log.trace("sending message to user: {}", userId);
         Set<? extends UserSession> allSocketOfTheUser = websocketRegistry.getAllUserSessions(userId);
         if (allSocketOfTheUser == null || allSocketOfTheUser.isEmpty()) {
             if (LOGGER.isTraceEnabled()) {
-                LOGGER.trace("No sockets found to send RPC message. message: {}", BackendRequest.sanitizeBody(message.body()));
+                LOGGER.warn("No sockets found to send RPC message. message: {}", BackendRequest.sanitizeBody(message.body()));
             }
             return;
         }

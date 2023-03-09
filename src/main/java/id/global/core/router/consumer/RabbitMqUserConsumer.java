@@ -22,7 +22,7 @@ public class RabbitMqUserConsumer extends AbstractRabbitMqConsumer {
 
     @Override
     protected ResponseMessageType getSocketMessageType() {
-        return ResponseMessageType.RPC;
+        return ResponseMessageType.USER;
     }
 
 }
