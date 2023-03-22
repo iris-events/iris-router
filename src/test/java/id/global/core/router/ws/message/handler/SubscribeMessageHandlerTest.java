@@ -9,7 +9,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
-import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 
 import javax.inject.Inject;
@@ -119,13 +119,17 @@ class SubscribeMessageHandlerTest {
 
     @Test
     void subscriptions() {
-        final var resources = new ArrayList<Resource>();
+        final var resourceId = "resourceId";
+        final var resourceType = "resourceType";
+
+        final var resources = List.of(new Resource(resourceId, resourceType));
+
         final var subscribe = new Subscribe(resources, null, null);
-        final var requestWrapper = new RequestWrapper(null, UUID.randomUUID().toString(), objectMapper.valueToTree(subscribe));
+        final var requestWrapper = new RequestWrapper("subscribe", UUID.randomUUID().toString(), objectMapper.valueToTree(subscribe));
 
         messageHandler.handle(userSession, requestWrapper);
 
         verify(backendService).sendInternalEvent(userSession, requestWrapper.clientTraceId(),
-                new id.global.iris.irissubscription.Subscribe(resources));
+                new id.global.iris.irissubscription.SubscribeInternal(resourceId, resourceType));
     }
 }
