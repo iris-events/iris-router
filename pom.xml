@@ -46,7 +46,7 @@
             <dependency>
                 <groupId>io.vertx</groupId>
                 <artifactId>vertx-rabbitmq-client</artifactId>
-                <version>4.3.8</version>
+                <version>4.4.1</version>
             </dependency>
             <dependency>
                 <groupId>com.rabbitmq</groupId>
