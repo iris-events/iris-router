@@ -18,7 +18,7 @@
     </scm>
 
     <properties>
-        <version.globalid.iris-subscription-models>1.0.13</version.globalid.iris-subscription-models>
+        <version.globalid.iris-subscription-models>1.0.14</version.globalid.iris-subscription-models>
     </properties>
     <dependencyManagement>
         <dependencies>
