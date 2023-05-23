@@ -53,9 +53,7 @@ public final class RawMessage {
         private static final String EVENT_FIELD = "event";
         private static final String PAYLOAD_FIELD = "payload";
         private static final String CLIENT_TRACE_ID_FIELD = "client_trace_id";
-        private static final String LEGACY_CLIENT_TRACE_ID_FIELD = "clientTraceId";
         private static final String SUBSCRIPTION_ID_FIELD = "subscription_id";
-        private static final String LEGACY_SUBSCRIPTION_ID_FIELD = "subscriptionId";
 
         private final ObjectMapper objectMapper;
 
@@ -112,11 +110,9 @@ public final class RawMessage {
                 generator.writeStringField(EVENT_FIELD, this.eventName);
                 if (clientTraceId != null) {
                     generator.writeStringField(CLIENT_TRACE_ID_FIELD, clientTraceId);
-                    generator.writeStringField(LEGACY_CLIENT_TRACE_ID_FIELD, clientTraceId);
                 }
                 if (subscriptionId != null) {
                     generator.writeStringField(SUBSCRIPTION_ID_FIELD, subscriptionId);
-                    generator.writeStringField(LEGACY_SUBSCRIPTION_ID_FIELD, subscriptionId);
                 }
                 if (routerEventPayload != null) {
                     generator.writeFieldName(PAYLOAD_FIELD);
