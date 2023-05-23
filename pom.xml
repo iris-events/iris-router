@@ -4,7 +4,7 @@
     <parent>
         <groupId>id.global</groupId>
         <artifactId>microservice-parent</artifactId>
-        <version>6.7</version>
+        <version>7.2</version>
         <relativePath />
     </parent>
     <groupId>id.global.iris</groupId>
@@ -37,23 +37,6 @@
                 <artifactId>iris-asyncapi</artifactId>
                 <version>${version.iris}</version>
             </dependency>
-            <!-- here just to override versions, should be gone once upstream is fixed -->
-            <dependency>
-                <groupId>io.smallrye.reactive</groupId>
-                <artifactId>smallrye-reactive-messaging-rabbitmq</artifactId>
-                <version>3.23.0</version>
-            </dependency>
-            <dependency>
-                <groupId>io.vertx</groupId>
-                <artifactId>vertx-rabbitmq-client</artifactId>
-                <version>4.3.8</version>
-            </dependency>
-            <dependency>
-                <groupId>com.rabbitmq</groupId>
-                <artifactId>amqp-client</artifactId>
-                <version>5.16.0</version>
-            </dependency>
-            <!-- end overrides -->
         </dependencies>
     </dependencyManagement>
     <dependencies>

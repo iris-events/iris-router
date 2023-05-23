@@ -4,9 +4,6 @@ import static id.global.iris.common.constants.MessagingHeaders.Message.EVENT_TYP
 
 import java.util.List;
 
-import javax.enterprise.event.Observes;
-import javax.inject.Inject;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
@@ -20,6 +17,8 @@ import io.vertx.rabbitmq.QueueOptions;
 import io.vertx.rabbitmq.RabbitMQClient;
 import io.vertx.rabbitmq.RabbitMQConsumer;
 import io.vertx.rabbitmq.RabbitMQMessage;
+import jakarta.enterprise.event.Observes;
+import jakarta.inject.Inject;
 
 public abstract class BaseConsumer {
 

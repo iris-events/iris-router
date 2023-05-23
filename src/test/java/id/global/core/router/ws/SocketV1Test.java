@@ -5,16 +5,15 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
+import static org.mockito.Mockito.when;
 
 import java.lang.annotation.Annotation;
 import java.util.UUID;
-
-import javax.enterprise.inject.Instance;
-import javax.enterprise.inject.literal.NamedLiteral;
-import javax.inject.Inject;
-import javax.websocket.RemoteEndpoint;
-import javax.websocket.Session;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
@@ -32,6 +31,11 @@ import id.global.core.router.ws.message.handler.MessageHandler;
 import id.global.iris.common.error.ErrorType;
 import id.global.iris.common.message.ErrorMessage;
 import io.quarkus.test.junit.QuarkusTest;
+import jakarta.enterprise.inject.Instance;
+import jakarta.enterprise.inject.literal.NamedLiteral;
+import jakarta.inject.Inject;
+import jakarta.websocket.RemoteEndpoint;
+import jakarta.websocket.Session;
 
 @QuarkusTest
 class SocketV1Test {
@@ -95,9 +99,9 @@ class SocketV1Test {
 
         final var errorEventArgumentCaptorAllValues = errorEventArgumentCaptor.getAllValues();
         final var eventMissingError = errorEventArgumentCaptorAllValues.get(0);
-        assertThat(eventMissingError.errorType(), is(ErrorType.BAD_PAYLOAD));
-        assertThat(eventMissingError.code(), is(EVENT_MISSING_CLIENT_CODE));
-        assertThat(eventMissingError.message(), is("'event' missing"));
+        assertThat(eventMissingError.getErrorType(), is(ErrorType.BAD_PAYLOAD));
+        assertThat(eventMissingError.getCode(), is(EVENT_MISSING_CLIENT_CODE));
+        assertThat(eventMissingError.getMessage(), is("'event' missing"));
 
         verifyNoInteractions(messageHandler);
     }

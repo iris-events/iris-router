@@ -3,10 +3,6 @@ package id.global.core.router.ws.message.handler;
 import static id.global.core.router.events.ErrorEvent.AUTHORIZATION_FAILED_CLIENT_CODE;
 import static id.global.core.router.ws.message.handler.SubscribeMessageHandler.EVENT_NAME;
 
-import javax.enterprise.context.ApplicationScoped;
-import javax.inject.Inject;
-import javax.inject.Named;
-
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import id.global.core.router.events.ErrorEvent;
@@ -18,6 +14,9 @@ import id.global.core.router.model.UserSession;
 import id.global.core.router.service.BackendService;
 import id.global.core.router.service.WebsocketRegistry;
 import id.global.iris.common.error.ErrorType;
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.inject.Inject;
+import jakarta.inject.Named;
 
 @ApplicationScoped
 @Named(EVENT_NAME)
@@ -82,7 +81,8 @@ public class SubscribeMessageHandler implements MessageHandler {
             var resourceId = subscription.getResourceId();
             var resourceType = subscription.getResourceType();
 
-            final var resourceSubscriptionInternalEvent = new id.global.iris.irissubscription.SubscribeInternal(resourceId, resourceType);
+            final var resourceSubscriptionInternalEvent = new id.global.iris.irissubscription.SubscribeInternal(resourceId,
+                    resourceType);
             backendService.sendInternalEvent(userSession, clientTraceId, resourceSubscriptionInternalEvent);
         });
 

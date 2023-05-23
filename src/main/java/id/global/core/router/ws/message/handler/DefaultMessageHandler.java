@@ -1,11 +1,10 @@
 package id.global.core.router.ws.message.handler;
 
-import javax.enterprise.context.ApplicationScoped;
-import javax.inject.Inject;
-
 import id.global.core.router.model.RequestWrapper;
 import id.global.core.router.model.UserSession;
 import id.global.core.router.service.BackendService;
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.inject.Inject;
 
 @ApplicationScoped
 @DefaultHandler

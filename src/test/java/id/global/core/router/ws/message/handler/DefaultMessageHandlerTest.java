@@ -6,8 +6,6 @@ import static org.mockito.Mockito.when;
 
 import java.util.UUID;
 
-import javax.inject.Inject;
-
 import org.junit.jupiter.api.Test;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -19,6 +17,7 @@ import id.global.core.router.service.BackendService;
 import io.quarkus.test.junit.QuarkusTest;
 import io.quarkus.test.junit.mockito.InjectMock;
 import io.vertx.core.buffer.Buffer;
+import jakarta.inject.Inject;
 
 @QuarkusTest
 class DefaultMessageHandlerTest {

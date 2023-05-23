@@ -12,9 +12,6 @@ import static org.mockito.Mockito.when;
 import java.util.List;
 import java.util.UUID;
 
-import javax.inject.Inject;
-import javax.inject.Named;
-
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -34,6 +31,8 @@ import id.global.iris.common.error.ErrorType;
 import id.global.iris.irissubscription.payload.Resource;
 import io.quarkus.test.junit.QuarkusTest;
 import io.quarkus.test.junit.mockito.InjectMock;
+import jakarta.inject.Inject;
+import jakarta.inject.Named;
 
 @QuarkusTest
 class SubscribeMessageHandlerTest {
@@ -125,7 +124,8 @@ class SubscribeMessageHandlerTest {
         final var resources = List.of(new Resource(resourceId, resourceType));
 
         final var subscribe = new Subscribe(resources, null, null);
-        final var requestWrapper = new RequestWrapper("subscribe", UUID.randomUUID().toString(), objectMapper.valueToTree(subscribe));
+        final var requestWrapper = new RequestWrapper("subscribe", UUID.randomUUID().toString(),
+                objectMapper.valueToTree(subscribe));
 
         messageHandler.handle(userSession, requestWrapper);
 

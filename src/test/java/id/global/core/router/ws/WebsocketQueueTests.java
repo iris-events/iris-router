@@ -5,8 +5,6 @@ import static id.global.iris.common.constants.MessagingHeaders.Message.EVENT_TYP
 import java.util.Map;
 import java.util.UUID;
 
-import javax.inject.Inject;
-
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
@@ -16,6 +14,7 @@ import id.global.iris.common.constants.Exchanges;
 import io.quarkus.test.junit.QuarkusTest;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.rabbitmq.RabbitMQClient;
+import jakarta.inject.Inject;
 
 @QuarkusTest
 @Disabled
