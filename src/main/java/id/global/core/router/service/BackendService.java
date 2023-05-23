@@ -1,9 +1,5 @@
 package id.global.core.router.service;
 
-import javax.enterprise.context.ApplicationScoped;
-import javax.enterprise.event.Observes;
-import javax.inject.Inject;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -18,6 +14,9 @@ import id.global.iris.common.constants.Exchanges;
 import id.global.iris.parsers.ExchangeParser;
 import io.quarkus.runtime.StartupEvent;
 import io.vertx.rabbitmq.RabbitMQClient;
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.enterprise.event.Observes;
+import jakarta.inject.Inject;
 
 /**
  * @author Tomaz Cerar

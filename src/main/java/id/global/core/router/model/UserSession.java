@@ -19,10 +19,15 @@ import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.nio.ByteBuffer;
 import java.time.Instant;
-import java.util.*;
-
-import javax.websocket.CloseReason;
-import javax.websocket.Session;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
+import java.util.UUID;
 
 import org.eclipse.microprofile.jwt.JsonWebToken;
 import org.slf4j.Logger;
@@ -38,6 +43,8 @@ import id.global.core.router.events.RouterEvent;
 import id.global.iris.common.error.ErrorType;
 import id.global.iris.common.message.ErrorMessage;
 import io.vertx.core.buffer.Buffer;
+import jakarta.websocket.CloseReason;
+import jakarta.websocket.Session;
 
 /**
  * @author Tomaz Cerar
@@ -371,6 +378,6 @@ public class UserSession {
     }
 
     private static ErrorEvent getErrorEvent(final ErrorMessage errorMessage) {
-        return new ErrorEvent(errorMessage.errorType(), errorMessage.code(), errorMessage.message());
+        return new ErrorEvent(errorMessage.getErrorType(), errorMessage.getCode(), errorMessage.getMessage());
     }
 }

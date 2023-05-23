@@ -5,8 +5,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
-import javax.inject.Inject;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -17,6 +15,7 @@ import id.global.core.router.service.RequestRegistry;
 import id.global.core.router.service.WebsocketRegistry;
 import io.vertx.core.Future;
 import io.vertx.core.json.JsonObject;
+import jakarta.inject.Inject;
 
 /**
  * @author Tomaz Cerar

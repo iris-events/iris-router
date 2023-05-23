@@ -2,10 +2,9 @@ package id.global.core.router.consumer;
 
 import java.util.List;
 
-import javax.enterprise.context.ApplicationScoped;
-
 import id.global.core.router.model.ResponseMessageType;
 import id.global.iris.common.constants.Exchanges;
+import jakarta.enterprise.context.ApplicationScoped;
 
 @ApplicationScoped
 public class RabbitMqSessionConsumer extends AbstractRabbitMqConsumer {

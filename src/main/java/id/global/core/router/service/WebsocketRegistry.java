@@ -8,10 +8,6 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArraySet;
 import java.util.concurrent.TimeUnit;
 
-import javax.enterprise.context.ApplicationScoped;
-import javax.inject.Inject;
-import javax.websocket.Session;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -24,6 +20,9 @@ import id.global.core.router.model.ResponseHandler;
 import id.global.core.router.model.UserSession;
 import id.global.core.router.model.WSResponseHandler;
 import io.quarkus.scheduler.Scheduled;
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.inject.Inject;
+import jakarta.websocket.Session;
 
 /**
  * @author Tomaž Cerar

@@ -13,8 +13,6 @@ import java.time.Instant;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-import javax.enterprise.context.ApplicationScoped;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -23,6 +21,7 @@ import id.global.core.router.model.BackendRequest;
 import id.global.core.router.model.ResponseHandler;
 import id.global.core.router.model.ResponseMessageType;
 import io.quarkus.scheduler.Scheduled;
+import jakarta.enterprise.context.ApplicationScoped;
 
 /**
  * @author Tomaz Cerar

@@ -1,9 +1,5 @@
 package id.global.core.router.config;
 
-import javax.enterprise.context.ApplicationScoped;
-import javax.enterprise.inject.Produces;
-import javax.inject.Inject;
-
 import org.eclipse.microprofile.config.Config;
 import org.eclipse.microprofile.reactive.messaging.spi.Connector;
 import org.slf4j.Logger;
@@ -13,6 +9,9 @@ import io.quarkus.arc.DefaultBean;
 import io.smallrye.reactive.messaging.rabbitmq.RabbitMQConnector;
 import io.vertx.rabbitmq.RabbitMQClient;
 import io.vertx.rabbitmq.RabbitMQOptions;
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.enterprise.inject.Produces;
+import jakarta.inject.Inject;
 
 @ApplicationScoped
 public class RabbitConfig {
