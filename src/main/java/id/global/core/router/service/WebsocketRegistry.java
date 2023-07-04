@@ -142,7 +142,6 @@ public class WebsocketRegistry {
     }
 
     public boolean login(UserSession userSession, String authToken) {
-        LOGGER.info("checking token: {}", authToken);
         var jwtToken = authClient.checkToken(authToken);
         if (jwtToken != null) {
             var oldId = userSession.getUserId();

@@ -19,9 +19,7 @@ public class AuthClient {
     public JsonWebToken checkToken(String jwtToken) {
 
         try {
-            JsonWebToken jsonWebToken = jwtParser.parse(jwtToken);
-            log.info("parsed token: {}", jwtToken);
-            return jsonWebToken;
+            return jwtParser.parse(jwtToken);
         } catch (ParseException e) {
             log.error("Could not parse token", e);
         }

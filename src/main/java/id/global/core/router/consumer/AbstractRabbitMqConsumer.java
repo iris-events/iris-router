@@ -115,7 +115,7 @@ public abstract class AbstractRabbitMqConsumer extends BaseConsumer {
         final String messageBody = message.body().copy().toString(StandardCharsets.UTF_8);
         if (router != null) {
             if (!routerId.equals(router)) {
-                log.warn("Message correlation id does not belong to this server. Discarding message.");
+                log.debug("Message correlation id does not belong to this server. Discarding message.");
                 return;
             }
         }

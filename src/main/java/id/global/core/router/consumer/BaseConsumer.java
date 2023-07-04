@@ -27,6 +27,11 @@ public abstract class BaseConsumer {
     @Inject
     RabbitMQClient client;
 
+    /*
+     * @Inject
+     * RabbitMQConnector zajc;
+     */
+
     public void onApplicationStart(@Observes StartupEvent event) {
         createQueues(getQueueName());
         client.start(asyncResult -> {
