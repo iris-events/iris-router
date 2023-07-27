@@ -1,58 +1,92 @@
 <?xml version="1.0"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <parent>
-        <groupId>id.global</groupId>
-        <artifactId>microservice-parent</artifactId>
-        <version>7.4</version>
+        <groupId>org.jboss</groupId>
+        <artifactId>jboss-parent</artifactId>
+        <version>39</version>
         <relativePath />
     </parent>
-    <groupId>id.global.iris</groupId>
-    <artifactId>router</artifactId>
-    <version>2.0.2-SNAPSHOT</version>
+    <groupId>org.iris-events</groupId>
+    <artifactId>iris-router</artifactId>
+    <version>3.0.0-SNAPSHOT</version>
     <scm>
-        <connection>scm:git:git@github.com:globalid/core-router.git</connection>
-        <developerConnection>scm:git:git@github.com:globalid/core-router.git</developerConnection>
-        <url>https://github.com/globalid/core-router</url>
+        <connection>scm:git:git@github.com:iris-events/iris-router.git</connection>
+        <developerConnection>scm:git:git@github.com:iris-events/iris-router.git</developerConnection>
+        <url>https://github.com/iris-events/iris-router</url>
         <tag>HEAD</tag>
     </scm>
+    <licenses>
+        <license>
+            <name>The Apache Software License, Version 2.0</name>
+            <url>https://www.apache.org/licenses/LICENSE-2.0.txt</url>
+            <distribution>repo</distribution>
+        </license>
+    </licenses>
 
     <properties>
+        <maven.compiler.target>17</maven.compiler.target>
+        <maven.compiler.source>17</maven.compiler.source>
+        <maven.compiler.release>17</maven.compiler.release>
+        <maven.compiler.parameters>true</maven.compiler.parameters>
+        <version.surefire.plugin>3.1.2</version.surefire.plugin>
+        <version.compiler.plugin>3.11.0</version.compiler.plugin>
         <version.globalid.iris-subscription-models>2.0.0</version.globalid.iris-subscription-models>
+        <quarkus.platform.version>3.2.4.Final</quarkus.platform.version>
+        <version.iris>5.0.1</version.iris>
     </properties>
     <dependencyManagement>
         <dependencies>
             <dependency>
+                <groupId>io.quarkus.platform</groupId>
+                <artifactId>quarkus-bom</artifactId>
+                <version>${quarkus.platform.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+
+            <dependency>
                 <groupId>id.global.iris</groupId>
                 <artifactId>iris-subscription-models</artifactId>
                 <version>${version.globalid.iris-subscription-models}</version>
+                <exclusions>
+                    <exclusion>
+                        <groupId>*</groupId>
+                        <artifactId>*</artifactId>
+                    </exclusion>
+                </exclusions>
             </dependency>
             <dependency>
-                <groupId>id.global.iris</groupId>
+                <groupId>org.iris-events</groupId>
                 <artifactId>iris-common</artifactId>
                 <version>${version.iris}</version>
             </dependency>
             <dependency>
-                <groupId>id.global.iris</groupId>
+                <groupId>org.iris-events</groupId>
                 <artifactId>iris-asyncapi</artifactId>
                 <version>${version.iris}</version>
+                <exclusions>
+                    <exclusion>
+                        <groupId>*</groupId>
+                        <artifactId>*</artifactId>
+                    </exclusion>
+                </exclusions>
             </dependency>
         </dependencies>
     </dependencyManagement>
     <dependencies>
         <dependency>
-            <groupId>id.global.iris</groupId>
+            <groupId>org.iris-events</groupId>
             <artifactId>iris-common</artifactId>
         </dependency>
         <dependency>
-            <groupId>id.global.iris</groupId>
+            <groupId>org.iris-events</groupId>
             <artifactId>iris-asyncapi</artifactId>
-            <exclusions>
-                <exclusion>
-                    <groupId>*</groupId>
-                    <artifactId>*</artifactId>
-                </exclusion>
-            </exclusions>
+        </dependency>
+        <dependency>
+            <groupId>io.quarkus</groupId>
+            <artifactId>quarkus-smallrye-health</artifactId>
         </dependency>
 
         <dependency>
@@ -60,10 +94,10 @@
             <artifactId>apicurio-registry-client</artifactId>
         </dependency>
 
-        <dependency>
+        <!--<dependency>
             <groupId>id.global.iris</groupId>
             <artifactId>iris-subscription-models</artifactId>
-        </dependency>
+        </dependency>-->
 
         <dependency>
             <groupId>io.quarkus</groupId>
@@ -81,6 +115,14 @@
             <groupId>io.quarkus</groupId>
             <artifactId>quarkus-smallrye-jwt</artifactId>
         </dependency>
+        <dependency>
+            <groupId>io.quarkus</groupId>
+            <artifactId>quarkus-opentelemetry</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>io.quarkus</groupId>
+            <artifactId>quarkus-logging-json</artifactId>
+        </dependency>
 
         <!-- Test dependencies-->
         <dependency>
@@ -94,4 +136,47 @@
             <scope>test</scope>
         </dependency>
     </dependencies>
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>io.quarkus.platform</groupId>
+                <artifactId>quarkus-maven-plugin</artifactId>
+                <version>${quarkus.platform.version}</version>
+                <extensions>true</extensions>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>build</goal>
+                            <goal>generate-code</goal>
+                            <goal>generate-code-tests</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <version>${version.surefire.plugin}</version>
+                <configuration>
+                    <systemPropertyVariables>
+                        <java.util.logging.manager>org.jboss.logmanager.LogManager</java.util.logging.manager>
+                        <maven.home>${maven.home}</maven.home>
+                    </systemPropertyVariables>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+    <profiles>
+        <profile>
+            <id>native</id>
+            <activation>
+                <property>
+                    <name>native</name>
+                </property>
+            </activation>
+            <properties>
+                <skipITs>false</skipITs>
+                <quarkus.package.type>native</quarkus.package.type>
+            </properties>
+        </profile>
+    </profiles>
 </project>
