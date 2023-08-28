@@ -12,6 +12,9 @@ jobs:
     name: run-tests
     permissions:
       packages: read
+    concurrency:
+      group: ${{ github.workflow }}-${{ github.ref }}
+      cancel-in-progress: true
     steps:
       - uses: actions/checkout@v3
       - name: Set up JDK 17
