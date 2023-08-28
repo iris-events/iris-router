@@ -1,5 +1,6 @@
 package org.iris_events.router.model.sub;
 
+import io.quarkus.runtime.annotations.RegisterForReflection;
 import org.iris_events.annotations.Message;
 import org.iris_events.annotations.Scope;
 
@@ -7,6 +8,7 @@ import java.util.List;
 import java.util.Objects;
 
 @Message(name = "subscribe", scope = Scope.FRONTEND)
+@RegisterForReflection
 public class Subscribe {
     private final List<Resource> resources;
 

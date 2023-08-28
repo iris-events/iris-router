@@ -4,11 +4,13 @@ import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 import java.util.regex.Pattern;
 
+import io.quarkus.runtime.annotations.RegisterForReflection;
 import io.vertx.core.buffer.Buffer;
 
 /**
  * @author Tomaz Cerar
  */
+@RegisterForReflection
 public record BackendRequest(String requestId, String dataType, Instant created,
         String requestBody, String requestUri, String ipAddress,
         String userAgent, String referer, String requestVia,

@@ -27,6 +27,7 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
 
+import io.quarkus.runtime.annotations.RegisterForReflection;
 import org.eclipse.microprofile.jwt.JsonWebToken;
 import org.iris_events.router.consumer.AbstractRabbitMqConsumer;
 import org.iris_events.router.events.ErrorEvent;
@@ -48,6 +49,7 @@ import jakarta.websocket.Session;
 /**
  * @author Tomaz Cerar
  */
+@RegisterForReflection
 public class UserSession {
     private static final Logger log = LoggerFactory.getLogger(UserSession.class);
 
