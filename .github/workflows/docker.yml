@@ -12,19 +12,28 @@ on:
     branches:
       - main
 
-env:
-  IMAGE_NAME: ghcr.io/${{ github.repository }}
-
 jobs:
   build-images:
     runs-on: ubuntu-latest
     permissions:
       contents: read
       packages: write
+    strategy:
+      matrix:
+        include:
+          - name: "JVM"
+            dockerfile: src/main/docker/Dockerfile.jvm
+            image: ghcr.io/${{ github.repository_owner }}/router
+          - name: "Native"
+            dockerfile: src/main/docker/Dockerfile.multistage
+            image: ghcr.io/${{ github.repository_owner }}/router-native
+    concurrency:
+      group: ${{ github.workflow }}-${{ github.ref }}-${{ matrix.name }}
+      cancel-in-progress: true
+    name: Docker image ${{ matrix.name }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
-      - uses: actions/checkout@v3
       - name: Set up JDK 17
         uses: actions/setup-java@v3
         with:
@@ -48,7 +57,7 @@ jobs:
         id: meta
         uses: docker/metadata-action@v4
         with:
-          images: ${{ env.IMAGE_NAME }}
+          images: ${{matrix.image}}
           tags: |
             type=ref,event=branch
             type=ref,event=tag
@@ -59,9 +68,9 @@ jobs:
         uses: docker/build-push-action@v3
         with:
           context: .
-          file: src/main/docker/Dockerfile.jvm
+          file: ${{ matrix.dockerfile }}
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
-          cache-from: type=registry,ref=${{ env.IMAGE_NAME }}:latest
+          cache-from: type=registry,ref=${{matrix.image}}:latest
           cache-to: type=inline
