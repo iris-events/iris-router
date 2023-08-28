@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.io.StringWriter;
 import java.nio.charset.StandardCharsets;
 
+import io.quarkus.runtime.annotations.RegisterForReflection;
 import org.iris_events.router.events.RouterEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -12,6 +13,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import io.vertx.core.buffer.Buffer;
 
+@RegisterForReflection
 public final class RawMessage {
     private final String message;
 

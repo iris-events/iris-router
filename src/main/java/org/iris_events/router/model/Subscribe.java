@@ -1,5 +1,6 @@
 package org.iris_events.router.model;
 
+import io.quarkus.runtime.annotations.RegisterForReflection;
 import org.iris_events.router.model.sub.Resource;
 
 import java.util.List;
@@ -9,6 +10,7 @@ import java.util.List;
 /**
  * @author Tomaz Cerar
  */
+@RegisterForReflection
 public final class Subscribe extends org.iris_events.router.model.sub.Subscribe {
     private final String token;
     private final Boolean heartbeat;
