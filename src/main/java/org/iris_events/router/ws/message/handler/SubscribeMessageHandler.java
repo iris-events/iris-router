@@ -5,7 +5,7 @@ import static org.iris_events.router.ws.message.handler.SubscribeMessageHandler.
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import org.iris_events.router.events.ErrorEvent;
-import org.iris_events.router.events.UserAuthenticated;
+import org.iris_events.router.model.IdentityAuthenticated;
 import org.iris_events.router.events.UserAuthenticatedEvent;
 import org.iris_events.router.model.RequestWrapper;
 import org.iris_events.router.model.Subscribe;
@@ -17,6 +17,8 @@ import org.iris_events.common.ErrorType;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.inject.Named;
+
+import java.util.UUID;
 
 @ApplicationScoped
 @Named(EVENT_NAME)
@@ -45,11 +47,12 @@ public class SubscribeMessageHandler implements MessageHandler {
         if (subscribe.getToken() != null) {
             final var loginSucceeded = websocketRegistry.login(userSession, subscribe.getToken());
             if (loginSucceeded) {
+                // send user authenticated event back to user session
                 final var userAuthenticatedEvent = new UserAuthenticatedEvent();
                 userSession.sendEvent(userAuthenticatedEvent, clientTraceId);
-                final var userAuthenticated = new UserAuthenticated(userSession.getUserId());
-                // TODO: do not emit yet, we need to declare queue first and add correlationId to the me
-                // sendIrisEventToBackend(userSession, clientTraceId, userAuthenticated);
+                // send identity/authenticated event to our backend as internal iris event
+                final var identityAuthenticated = new IdentityAuthenticated(UUID.fromString(userSession.getUserId()));
+                backendService.sendInternalEvent(userSession, clientTraceId, identityAuthenticated);
             } else {
                 final var errorEvent = new ErrorEvent(ErrorType.UNAUTHORIZED, ErrorEvent.AUTHORIZATION_FAILED_CLIENT_CODE,
                         "authorization failed");
