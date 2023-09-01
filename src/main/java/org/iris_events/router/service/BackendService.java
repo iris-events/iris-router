@@ -10,6 +10,7 @@ import org.eclipse.microprofile.reactive.messaging.Metadata;
 import org.iris_events.annotations.Message;
 import org.iris_events.asyncapi.parsers.ExchangeParser;
 import org.iris_events.router.model.AmqpMessage;
+import org.iris_events.router.model.IdentityAuthenticated;
 import org.iris_events.router.model.RequestWrapper;
 import org.iris_events.router.model.UserSession;
 import org.iris_events.router.model.sub.SessionClosed;
@@ -38,6 +39,10 @@ public class BackendService {
     @Inject
     @Channel("subscribe-internal")
     Emitter<Buffer> subscribeInternalPublisher;
+
+    @Inject
+    @Channel("identity/authenticated")
+    Emitter<Buffer> identityAuthenticatedInternalPublisher;
 
 
     @Inject
@@ -81,6 +86,10 @@ public class BackendService {
 
     public void sendInternalEvent(final UserSession userSession, final String clientTraceId, final SessionClosed message) {
         sendInternalEvent(userSession, clientTraceId, message, sessionClosedPublisher);
+    }
+
+    public void sendInternalEvent(final UserSession userSession, final String clientTraceId, final IdentityAuthenticated message) {
+        sendInternalEvent(userSession, clientTraceId, message, identityAuthenticatedInternalPublisher);
     }
 
     public void sendInternalEvent(final UserSession userSession, final String clientTraceId, final SubscribeInternal message) {
