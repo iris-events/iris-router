@@ -13,6 +13,7 @@ import java.time.Instant;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
+import org.iris_events.common.MessagingHeaders;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -22,6 +23,7 @@ import org.iris_events.router.model.ResponseHandler;
 import org.iris_events.router.model.ResponseMessageType;
 import io.quarkus.scheduler.Scheduled;
 import jakarta.enterprise.context.ApplicationScoped;
+import org.slf4j.MDC;
 
 /**
  * @author Tomaz Cerar
@@ -80,6 +82,7 @@ public class RequestRegistry {
         final Instant expireTime = Instant.now().minus(Duration.ofSeconds(30));
         requests.values().forEach(n -> {
             if (n.created().isBefore(expireTime)) {
+                setDiagnosticData(n);
                 String msg;
                 if (n.requestUri() == null) {
                     msg = String.format(
@@ -96,6 +99,18 @@ public class RequestRegistry {
 
             }
         });
+    }
+    private void setDiagnosticData(BackendRequest request){
+        if (request.sessionId() != null) {
+            MDC.put("sessionId", request.sessionId());
+        }
+        if (request.requestId() != null) {
+            MDC.put("correlationId", request.requestId());
+        }
+        MDC.put("eventType", request.dataType());
+        if (request.userId() != null) {
+            MDC.put("userId", request.userId());
+        }
     }
 
     public void registerNewRequest(AmqpMessage message, ResponseHandler responseHandler) {

@@ -29,7 +29,6 @@ import java.util.UUID;
 
 import io.quarkus.runtime.annotations.RegisterForReflection;
 import org.eclipse.microprofile.jwt.JsonWebToken;
-import org.iris_events.router.consumer.AbstractRabbitMqConsumer;
 import org.iris_events.router.events.ErrorEvent;
 import org.iris_events.router.events.RouterEvent;
 import org.iris_events.router.service.RouterIdProvider;
@@ -118,7 +117,7 @@ public class UserSession {
     //actions
     public void sendMessage(AmqpMessage message) {
         final var clientTraceId = message.clientTraceId();
-        final var rawMessage = RawMessage.RawMessageBuilder.getInstance(objectMapper)
+        final var rawMessage = RawMessage.builder(objectMapper)
                 .setEventName(message.eventType())
                 .setClientTraceId(clientTraceId)
                 .setSubscriptionId(message.subscriptionId())
@@ -299,10 +298,7 @@ public class UserSession {
         this.clientIp = headers.getOrDefault("X-Envoy-External-Address", List.of())
                 .stream()
                 .findAny()
-                .orElseGet(() -> {
-                    log.warn("X-Envoy-External-Address header missing - no client IP set for sessionId: {}", sessionId);
-                    return null;
-                });
+                .orElse(null);
 
         // getting proxy ip address from headers
         List<String> proxyIpList = headers.get("X-Forwarded-For");
@@ -317,9 +313,12 @@ public class UserSession {
                     }
                 }
             }
-            if (proxyIpListFiltered.size() > 0) {
+            if (!proxyIpListFiltered.isEmpty()) {
                 proxyIp = String.join(", ", proxyIpListFiltered);
             }
+        }
+        if (clientIp ==null) {
+            log.warn("Could not find client ip from headers, tried 'X-Envoy-External-Address','X-Forwarded-For' sessionId: {}", sessionId);
         }
 
         // getting user agent from headers
@@ -345,10 +344,9 @@ public class UserSession {
     }
 
     private RawMessage getRawMessage(final RouterEvent event, final String clientTraceId) {
-        return RawMessage.RawMessageBuilder.getInstance(objectMapper)
+        return RawMessage.builder(objectMapper)
                 .setEventName(event.getName())
                 .setClientTraceId(clientTraceId)
-                .setSubscriptionId(null)
                 .setPayloadFromEvent(event)
                 .build();
     }
