@@ -21,9 +21,8 @@ public class AuthClient {
         try {
             return jwtParser.parse(jwtToken);
         } catch (ParseException e) {
-            log.error("Could not parse token", e);
+            log.warn("Could not parse token", e);
         }
-
         return null;
     }
 

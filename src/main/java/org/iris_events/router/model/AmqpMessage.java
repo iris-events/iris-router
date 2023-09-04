@@ -27,6 +27,9 @@ public record AmqpMessage(Buffer body, BasicProperties properties, String eventT
     public String currentServiceId() {
         return getStringHeader(properties, CURRENT_SERVICE_ID);
     }
+    public String originServiceId() {
+        return getStringHeader(properties, ORIGIN_SERVICE_ID);
+    }
 
     public String routerId() {
         return getStringHeader(properties, ROUTER);

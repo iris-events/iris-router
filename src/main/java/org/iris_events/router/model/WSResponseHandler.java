@@ -54,6 +54,8 @@ public class WSResponseHandler extends DefaultResponseHandler {
         }
     }
 
+
+
     @Override
     protected void onFailure(final AmqpMessage message) {
         // always send error message only to current active session

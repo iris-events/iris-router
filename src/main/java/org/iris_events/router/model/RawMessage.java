@@ -13,7 +13,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import io.vertx.core.buffer.Buffer;
 
-@RegisterForReflection
 public final class RawMessage {
     private final String message;
 
@@ -25,31 +24,11 @@ public final class RawMessage {
         return message;
     }
 
-    interface RawMessageEventName {
-        RawMessageClientTraceId setEventName(String eventName);
+    public static RawMessageBuilder builder(ObjectMapper objectMapper){
+        return new RawMessageBuilder(objectMapper);
     }
 
-    interface RawMessageClientTraceId {
-        RawMessageSubscriptionId setClientTraceId(String clientTraceId);
-    }
-
-    interface RawMessageSubscriptionId {
-        RawMessagePayload setSubscriptionId(String subscriptionId);
-    }
-
-    interface RawMessagePayload {
-        RawMessageCreator setPayloadFromBuffer(Buffer buffer);
-
-        RawMessageCreator setPayloadFromEvent(RouterEvent routerEvent);
-    }
-
-    interface RawMessageCreator {
-        RawMessage build();
-    }
-
-    public static class RawMessageBuilder
-            implements RawMessageEventName, RawMessageClientTraceId, RawMessageSubscriptionId, RawMessagePayload,
-            RawMessageCreator {
+    public static class RawMessageBuilder {
 
         private static final Logger log = LoggerFactory.getLogger(RawMessageBuilder.class);
         private static final String EVENT_FIELD = "event";
@@ -65,45 +44,34 @@ public final class RawMessage {
         private RouterEvent routerEventPayload;
         private Buffer bufferPayload;
 
-        public RawMessageBuilder(final ObjectMapper objectMapper) {
+        private RawMessageBuilder(final ObjectMapper objectMapper) {
             this.objectMapper = objectMapper;
         }
 
-        public static RawMessageEventName getInstance(final ObjectMapper objectMapper) {
-            return new RawMessageBuilder(objectMapper);
-        }
-
-        @Override
-        public RawMessageClientTraceId setEventName(final String eventName) {
+        public RawMessageBuilder setEventName(final String eventName) {
             this.eventName = eventName;
             return this;
         }
 
-        @Override
-        public RawMessageSubscriptionId setClientTraceId(final String clientTraceId) {
+        public RawMessageBuilder setClientTraceId(final String clientTraceId) {
             this.clientTraceId = clientTraceId;
             return this;
         }
 
-        @Override
-        public RawMessagePayload setSubscriptionId(final String subscriptionId) {
+        public RawMessageBuilder setSubscriptionId(final String subscriptionId) {
             this.subscriptionId = subscriptionId;
             return this;
         }
 
-        @Override
-        public RawMessageCreator setPayloadFromBuffer(final Buffer buffer) {
+        public RawMessageBuilder setPayloadFromBuffer(final Buffer buffer) {
             this.bufferPayload = buffer;
             return this;
         }
 
-        @Override
-        public RawMessageCreator setPayloadFromEvent(final RouterEvent routerEvent) {
+        public RawMessageBuilder setPayloadFromEvent(final RouterEvent routerEvent) {
             this.routerEventPayload = routerEvent;
             return this;
         }
-
-        @Override
         public RawMessage build() {
             final var writer = new StringWriter();
             try {

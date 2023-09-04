@@ -18,7 +18,7 @@ public abstract class DefaultResponseHandler implements ResponseHandler {
         if (responseMessageType != ResponseMessageType.ERROR) {
             onSuccess(responseMessageType, message);
         } else {
-            log.warn("Handling exception error message. {}/{}", message.currentServiceId(), message.eventType());
+            log.info("Handling exception error message. {}/{}", message.originServiceId(), message.eventType());
             onFailure(message);
         }
     }
