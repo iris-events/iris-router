@@ -74,7 +74,7 @@ class SubscribeMessageHandlerTest {
 
         final var errorEvent = errorEventArgumentCaptor.getValue();
         assertThat(errorEvent.getName(), is(ErrorEvent.NAME));
-        assertThat(errorEvent.errorType(), is(ErrorType.AUTHENTICATION_FAILED));
+        assertThat(errorEvent.errorType(), is(ErrorType.UNAUTHORIZED));
         assertThat(errorEvent.code(), Matchers.is(ErrorEvent.AUTHORIZATION_FAILED_CLIENT_CODE));
         assertThat(errorEvent.message(), is("authorization failed"));
     }

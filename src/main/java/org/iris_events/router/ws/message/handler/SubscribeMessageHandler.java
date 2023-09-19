@@ -51,7 +51,7 @@ public class SubscribeMessageHandler implements MessageHandler {
                 // TODO: do not emit yet, we need to declare queue first and add correlationId to the me
                 // sendIrisEventToBackend(userSession, clientTraceId, userAuthenticated);
             } else {
-                final var errorEvent = new ErrorEvent(ErrorType.AUTHENTICATION_FAILED, ErrorEvent.AUTHORIZATION_FAILED_CLIENT_CODE,
+                final var errorEvent = new ErrorEvent(ErrorType.UNAUTHORIZED, ErrorEvent.AUTHORIZATION_FAILED_CLIENT_CODE,
                         "authorization failed");
                 userSession.sendEvent(errorEvent, clientTraceId);
                 // when token is present, login must succeed
