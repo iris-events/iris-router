@@ -86,7 +86,7 @@ class SubscribeMessageHandlerTest {
         final var requestWrapper = new RequestWrapper(null, UUID.randomUUID().toString(), objectMapper.valueToTree(subscribe));
 
         when(websocketRegistry.login(userSession, token)).thenReturn(true);
-
+        when(userSession.getUserId()).thenReturn(UUID.randomUUID().toString());
         messageHandler.handle(userSession, requestWrapper);
 
         final var userAuthenticatedEventArgumentCaptor = ArgumentCaptor.forClass(UserAuthenticatedEvent.class);
