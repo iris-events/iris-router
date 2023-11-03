@@ -1,21 +1,13 @@
 package org.iris_events.router.service;
 
-import java.io.IOException;
-import java.io.UncheckedIOException;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-
-import io.apicurio.registry.rest.client.RegistryClientFactory;
 import jakarta.enterprise.context.ApplicationScoped;
-import jakarta.inject.Inject;
 
+/*
+ *  todo fetch json schema from schema registry and validate payloads against it
+ */
 @ApplicationScoped
 public class ValidationService {
-    private static final Logger log = LoggerFactory.getLogger(ValidationService.class);
+   /* private static final Logger log = LoggerFactory.getLogger(ValidationService.class);
 
     @Inject
     ObjectMapper objectMapper;
@@ -42,6 +34,6 @@ public class ValidationService {
                 });
         log.info("schemas: {}", results);
 
-    }
+    }*/
 
 }
