@@ -38,6 +38,15 @@ public record AmqpMessage(Buffer body, BasicProperties properties, String eventT
     public String subscriptionId() {
         return getStringHeader(properties, SUBSCRIPTION_ID);
     }
+    public String ipAddress() {
+        return getStringHeader(properties, IP_ADDRESS);
+    }
+    public String userAgent() {
+        return getStringHeader(properties, USER_AGENT);
+    }
+    public String deviceId() {
+        return getStringHeader(properties, DEVICE);
+    }
 
     private String getStringHeader(BasicProperties props, String name) {
         var r = props.getHeaders().get(name);

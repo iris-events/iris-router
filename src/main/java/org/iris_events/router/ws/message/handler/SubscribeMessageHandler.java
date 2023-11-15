@@ -44,6 +44,9 @@ public class SubscribeMessageHandler implements MessageHandler {
     }
 
     private void subscribe(final UserSession userSession, final Subscribe subscribe, final String clientTraceId) {
+        if (subscribe.getDeviceId() != null) {
+            userSession.updateDeviceId(subscribe.getDeviceId());
+        }
         if (subscribe.getToken() != null) {
             final var loginSucceeded = websocketRegistry.login(userSession, subscribe.getToken());
             if (loginSucceeded) {

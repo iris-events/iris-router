@@ -191,6 +191,15 @@ public class UserSession {
         this.tokenExpiry = Instant.ofEpochSecond(token.getExpirationTime());
     }
 
+    public void updateDeviceId(String clientDeviceId) {
+        /*if (!clientDeviceId.equals(this.clientDeviceId)) {
+            //log.info("Device Id : {}, our user: {}", token.getSubject(), this.userId);
+            return;
+        }*/
+        log.info("setting device id: {}",clientDeviceId);
+        this.clientDeviceId = clientDeviceId;
+    }
+
     public String logOut() {
         anonymous = true;
         token = null;
@@ -312,9 +321,11 @@ public class UserSession {
                         proxyIpListFiltered.add(s);
                     }
                 }
-            }
-            if (!proxyIpListFiltered.isEmpty()) {
-                proxyIp = String.join(", ", proxyIpListFiltered);
+                if (!proxyIpListFiltered.isEmpty()) {
+                    proxyIp = String.join(", ", proxyIpListFiltered);
+                }
+            }else{
+                clientIp = proxyIpList.getFirst();
             }
         }
         if (clientIp ==null) {
@@ -328,6 +339,11 @@ public class UserSession {
             userAgent = String.join(", ", userAgentList);
         }
         this.userAgent = userAgent;
+        var deviceIds = headers.get("device_id");
+        if (deviceIds !=null && !deviceIds.isEmpty()){
+            clientDeviceId = deviceIds.getFirst();
+        }
+
         this.defaultMessageHeaders = new HashMap<>();
         defaultMessageHeaders.put(PROXY_IP_ADDRESS, proxyIp);
 
