@@ -8,6 +8,7 @@ import java.util.Optional;
 import java.util.UUID;
 
 import org.iris_events.router.events.ErrorEvent;
+import org.iris_events.router.events.HeartBeatEvent;
 import org.iris_events.router.model.RequestWrapper;
 import org.iris_events.router.model.sub.SessionClosed;
 import org.iris_events.router.service.BackendService;
@@ -61,6 +62,7 @@ public class SocketV1 {
                 .orElse(Collections.emptyMap());
         var userSession = websocketRegistry.startSession(session, headers);
         conf.getUserProperties().put("user-session", userSession);
+        MDC.remove(MDCProperties.SESSION_ID);
     }
 
     @OnClose
@@ -77,6 +79,7 @@ public class SocketV1 {
             final var sessionClosed = new SessionClosed(sessionId, userId);
             backendService.sendInternalEvent(userSession, null, sessionClosed);
         }
+        MDC.put(MDCProperties.SESSION_ID, session.getId());
     }
 
     @OnError
@@ -129,6 +132,10 @@ public class SocketV1 {
         } catch (Exception e) {
             log.error("Could not handle websocket client message", e);
             session.getAsyncRemote().sendText("Could not read message " + e.getMessage());
+        }finally {
+            MDC.remove(MDCProperties.SESSION_ID);
+            MDC.remove(MDCProperties.EVENT_TYPE);
+            MDC.remove(MDCProperties.CORRELATION_ID);
         }
     }
 

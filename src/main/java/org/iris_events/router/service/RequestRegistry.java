@@ -36,7 +36,7 @@ public class RequestRegistry {
     private static final Duration requestExpirationTime = Duration.ofSeconds(30);
 
     private final ConcurrentHashMap<String, BackendRequest> requests = new ConcurrentHashMap<>();
-    private final int requestTimeLogThreshold = 10; // 5ms
+    private final int requestTimeLogThreshold = 5; // 5ms
 
     public RequestRegistry() {
 
