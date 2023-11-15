@@ -62,7 +62,7 @@ class SubscribeMessageHandlerTest {
     @Test
     void loginFailed() {
         final var token = UUID.randomUUID().toString();
-        final var subscribe = new Subscribe(null, token, null);
+        final var subscribe = new Subscribe(null, token, UUID.randomUUID().toString(), null);
         final var requestWrapper = new RequestWrapper(null, UUID.randomUUID().toString(), objectMapper.valueToTree(subscribe));
 
         when(websocketRegistry.login(userSession, token)).thenReturn(false);
@@ -82,7 +82,7 @@ class SubscribeMessageHandlerTest {
     @Test
     void login() {
         final var token = UUID.randomUUID().toString();
-        final var subscribe = new Subscribe(null, token, null);
+        final var subscribe = new Subscribe(null, token, UUID.randomUUID().toString(), null);
         final var requestWrapper = new RequestWrapper(null, UUID.randomUUID().toString(), objectMapper.valueToTree(subscribe));
 
         when(websocketRegistry.login(userSession, token)).thenReturn(true);
@@ -99,7 +99,7 @@ class SubscribeMessageHandlerTest {
     @ParameterizedTest
     @ValueSource(booleans = { true, false })
     void setSendHeartbeat(boolean heartbeat) {
-        final var subscribe = new Subscribe(null, null, heartbeat);
+        final var subscribe = new Subscribe(null, null, null, heartbeat);
         final var requestWrapper = new RequestWrapper(null, UUID.randomUUID().toString(), objectMapper.valueToTree(subscribe));
 
         messageHandler.handle(userSession, requestWrapper);
@@ -109,7 +109,7 @@ class SubscribeMessageHandlerTest {
 
     @Test
     void emptySubscriptions() {
-        final var subscribe = new Subscribe(null, null, null);
+        final var subscribe = new Subscribe(null, null, null, null);
         final var requestWrapper = new RequestWrapper(null, UUID.randomUUID().toString(), objectMapper.valueToTree(subscribe));
 
         messageHandler.handle(userSession, requestWrapper);
@@ -124,7 +124,7 @@ class SubscribeMessageHandlerTest {
 
         final var resources = List.of(new Resource(resourceType, resourceId));
 
-        final var subscribe = new Subscribe(resources, null, null);
+        final var subscribe = new Subscribe(resources, null, null, null);
         final var requestWrapper = new RequestWrapper("subscribe", UUID.randomUUID().toString(),
                 objectMapper.valueToTree(subscribe));
 

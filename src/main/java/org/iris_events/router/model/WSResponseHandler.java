@@ -2,6 +2,7 @@ package org.iris_events.router.model;
 
 import java.util.Set;
 
+import org.iris_events.router.consumer.BaseConsumer;
 import org.iris_events.router.service.WebsocketRegistry;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -30,19 +31,7 @@ public class WSResponseHandler extends DefaultResponseHandler {
 
     @Override
     protected void onSuccess(ResponseMessageType responseMessageType, AmqpMessage message) {
-        if (message.sessionId() != null) {
-            MDC.put("sessionId", message.sessionId());
-        }
-        if (message.clientTraceId() != null) {
-            MDC.put("clientTraceId", message.clientTraceId());
-        }
-        if (message.correlationId() != null) {
-            MDC.put("correlationId", message.correlationId());
-        }
-        MDC.put("eventType", message.eventType());
-        if (message.userId() != null) {
-            MDC.put("userId", message.userId());
-        }
+        BaseConsumer.enrichMDC(message);
         if (responseMessageType == ResponseMessageType.USER) {
             sendUserMessage(message);
         } else if (responseMessageType == ResponseMessageType.SESSION) {

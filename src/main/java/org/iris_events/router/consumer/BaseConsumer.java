@@ -23,7 +23,7 @@ public abstract class BaseConsumer {
     /*@Inject
     RabbitMQClient client;*/
 
-    private static void enrichMDC(final AmqpMessage m) {
+    public static void enrichMDC(final AmqpMessage m) {
         if (m.sessionId() != null)
             MDC.put(MDCProperties.SESSION_ID, m.sessionId());
         if (m.userId() != null)
@@ -32,19 +32,15 @@ public abstract class BaseConsumer {
             MDC.put(MDCProperties.CLIENT_TRACE_ID, m.clientTraceId());
         if (m.correlationId() != null)
             MDC.put(MDCProperties.CORRELATION_ID, m.correlationId());
+        if (m.ipAddress() != null)
+            MDC.put("ipAddress", m.ipAddress());
+        if (m.userAgent() != null)
+            MDC.put("userAgent", m.userAgent());
+        if (m.userAgent() != null)
+            MDC.put("device", m.deviceId());
         MDC.put(MDCProperties.EVENT_TYPE, m.eventType());
     }
 
-    private static Throwable findRootCause(Throwable throwable) {
-        if (throwable == null) {
-            return null;
-        }
-        Throwable rootCause = throwable;
-        while (rootCause.getCause() != null && rootCause.getCause() != rootCause) {
-            rootCause = rootCause.getCause();
-        }
-        return rootCause;
-    }
 
 
     protected abstract ResponseMessageType getSocketMessageType();
@@ -52,30 +48,6 @@ public abstract class BaseConsumer {
 
     public abstract void onMessage(AmqpMessage message);
 
-
-    private void handleMessage(RabbitMQMessage message) {
-        try {
-            var properties = message.properties();
-            var body = message.body();
-            final var correlationId = properties.getCorrelationId();
-            if (correlationId != null) {
-                MDC.put(MDCProperties.CORRELATION_ID, correlationId);
-            }
-
-            Object event = properties.getHeaders().get(EVENT_TYPE);
-            if (event == null) {
-                throw new RuntimeException("Required header '" + EVENT_TYPE + "' missing on message");
-            }
-
-            AmqpMessage m = new AmqpMessage(body, properties, event.toString());
-            enrichMDC(m);
-            onMessage(m);
-        } catch (Exception e) {
-            log.warn("Error handling message", e);
-        } finally {
-            MDC.clear();
-        }
-    }
 
     public CompletionStage<Void> handleMessage(Message<byte[]> message) {
         var meta = message.getMetadata(IncomingRabbitMQMetadata.class).orElseThrow();

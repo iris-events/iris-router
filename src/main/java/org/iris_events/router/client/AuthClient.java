@@ -22,13 +22,10 @@ public class AuthClient {
         try {
             return jwtParser.parse(jwtToken);
         } catch (ParseException e) {
-
-            log.info("token: {}", jwtToken);
             if (e.getCause() instanceof InvalidJwtException ije) {
                 log.info("invalid jwt, context: {}, details: {}", ije.getJwtContext(),ije.getErrorDetails());
             }
             log.warn("Could not parse token", e);
-
         } finally {
             MDC.remove("token");
         }

@@ -40,7 +40,7 @@ public class WebsocketTest {
     public void testSimpleMessage() throws Exception {
         try (Session session = ContainerProvider.getWebSocketContainer().connectToServer(Client.class, uri)) {
             Assertions.assertEquals("CONNECT", MESSAGES.poll(10, TimeUnit.SECONDS));
-            send(session, new Subscribe(null, null, true));
+            send(session, new Subscribe(null, null, null, true));
             var event = MESSAGES.poll(30, TimeUnit.SECONDS);
             Assertions.assertNotNull(event);
             Assertions.assertTrue(event.contains("\"event\":\"heartbeat\""));
