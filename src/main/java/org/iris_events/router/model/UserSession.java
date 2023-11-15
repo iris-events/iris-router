@@ -98,8 +98,8 @@ public class UserSession {
         this.userId = anonymousUserId;
         this.anonymous = true;
         this.connectedAt = Instant.now();
-        log.info("Created new user session. userId: {}", userId);
         setupDefaultHeaders(session.getId(), headers);
+        log.info("Created new user session. userId: {}, deviceId: {}", userId, clientDeviceId);
     }
 
     public String getId() {
@@ -192,10 +192,6 @@ public class UserSession {
     }
 
     public void updateDeviceId(String clientDeviceId) {
-        /*if (!clientDeviceId.equals(this.clientDeviceId)) {
-            //log.info("Device Id : {}, our user: {}", token.getSubject(), this.userId);
-            return;
-        }*/
         log.info("setting device id: {}",clientDeviceId);
         this.clientDeviceId = clientDeviceId;
     }
@@ -212,7 +208,6 @@ public class UserSession {
     public boolean removeExpired() {
         //todo
         return isValid();
-
     }
 
     public String getUserId() {

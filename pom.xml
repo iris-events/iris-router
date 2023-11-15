@@ -32,7 +32,7 @@
         <version.surefire.plugin>3.1.2</version.surefire.plugin>
         <version.compiler.plugin>3.11.0</version.compiler.plugin>
         <version.globalid.iris-subscription-models>2.0.0</version.globalid.iris-subscription-models>
-        <quarkus.platform.version>3.5.1</quarkus.platform.version>
+        <quarkus.platform.version>3.6.0</quarkus.platform.version>
         <version.iris>5.0.9</version.iris>
         <maven.deploy.skip>true</maven.deploy.skip>
     </properties>
@@ -88,17 +88,6 @@
             <groupId>io.quarkus</groupId>
             <artifactId>quarkus-smallrye-health</artifactId>
         </dependency>
-
-       <!-- <dependency>
-            <groupId>io.apicurio</groupId>
-            <artifactId>apicurio-registry-client</artifactId>
-        </dependency>-->
-
-        <!--<dependency>
-            <groupId>id.global.iris</groupId>
-            <artifactId>iris-subscription-models</artifactId>
-        </dependency>-->
-
         <dependency>
             <groupId>io.quarkus</groupId>
             <artifactId>quarkus-smallrye-reactive-messaging-rabbitmq</artifactId>
