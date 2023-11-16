@@ -80,6 +80,8 @@ public abstract class BaseConsumer {
     public CompletionStage<Void> handleMessage(Message<byte[]> message) {
         var meta = message.getMetadata(IncomingRabbitMQMetadata.class).orElseThrow();
         var body = message.getPayload();
+
+        log.info("Router handling message with meta headers: {}\n", meta.getHeaders());
         meta.getCorrelationId().ifPresent(correlationId -> {
             MDC.put(MDCProperties.CORRELATION_ID, correlationId);
         });
