@@ -17,7 +17,7 @@ public class WsContainerConfigurator extends DefaultContainerConfigurator {
         super.modifyHandshake(sec, request, response);
         String irisSessionId = UUID.randomUUID().toString();
         sec.getUserProperties().put(IRIS_SESSION_ID_HEADER, irisSessionId);
-        response.getHeaders().put("Iris-Session-Id", List.of(irisSessionId));
+        response.getHeaders().put(IRIS_SESSION_ID_HEADER, List.of(irisSessionId));
         sec.getUserProperties().put("headers", request.getHeaders());
     }
 }
