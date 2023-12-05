@@ -2,6 +2,7 @@ package org.iris_events.router.ws;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
+import static org.iris_events.router.ws.SocketV1.IRIS_SESSION_ID_HEADER;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doThrow;
@@ -12,6 +13,7 @@ import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 import java.lang.annotation.Annotation;
+import java.util.Map;
 import java.util.UUID;
 
 import org.hamcrest.Matchers;
@@ -72,6 +74,7 @@ class SocketV1Test {
     void onMessageEmpty() {
         final var session = mock(Session.class);
         when(session.getId()).thenReturn(UUID.randomUUID().toString());
+        when(session.getUserProperties()).thenReturn(Map.of(IRIS_SESSION_ID_HEADER, UUID.randomUUID().toString()));
         socketV1.onMessage(session, "");
 
         verifyNoInteractions(websocketRegistry);
@@ -81,8 +84,10 @@ class SocketV1Test {
     @Test
     void onMessage() {
         final var sessionId = UUID.randomUUID().toString();
+        final var irisSessionId = UUID.randomUUID().toString();
         final var session = mock(Session.class);
         when(session.getId()).thenReturn(sessionId);
+        when(session.getUserProperties()).thenReturn(Map.of(IRIS_SESSION_ID_HEADER, irisSessionId));
 
         final var userSession = mock(UserSession.class);
         when(userSession.isValid()).thenReturn(true);
@@ -110,8 +115,10 @@ class SocketV1Test {
     @Test
     void onMessageException() {
         final var sessionId = UUID.randomUUID().toString();
+        final var irisSessionId = UUID.randomUUID().toString();
         final var session = mock(Session.class);
         when(session.getId()).thenReturn(sessionId);
+        when(session.getUserProperties()).thenReturn(Map.of(IRIS_SESSION_ID_HEADER, irisSessionId));
         final var async = mock(RemoteEndpoint.Async.Async.class);
         when(session.getAsyncRemote()).thenReturn(async);
         final var userSession = mock(UserSession.class);
@@ -140,8 +147,10 @@ class SocketV1Test {
         @BeforeEach
         void beforeEach() {
             final var sessionId = UUID.randomUUID().toString();
+            final var irisSessionId = UUID.randomUUID().toString();
             session = mock(Session.class);
             when(session.getId()).thenReturn(sessionId);
+            when(session.getUserProperties()).thenReturn(Map.of(IRIS_SESSION_ID_HEADER, irisSessionId));
 
             userSession = mock(UserSession.class);
             when(websocketRegistry.getSession(sessionId)).thenReturn(userSession);
