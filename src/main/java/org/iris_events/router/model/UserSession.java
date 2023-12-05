@@ -12,6 +12,7 @@ import static org.iris_events.common.MessagingHeaders.Message.ROUTER;
 import static org.iris_events.common.MessagingHeaders.Message.SESSION_ID;
 import static org.iris_events.common.MessagingHeaders.Message.USER_AGENT;
 import static org.iris_events.common.MessagingHeaders.Message.USER_ID;
+import static org.iris_events.router.ws.SocketV1.IRIS_SESSION_ID_HEADER;
 
 import java.io.IOException;
 import java.io.UncheckedIOException;
@@ -89,6 +90,7 @@ public class UserSession {
     private String clientDeviceId = null;
     private boolean sendHeartbeat = false;
     private String userAgent;
+    private String irisSessionId;
 
     public UserSession(ObjectMapper objectMapper, Session session, Map<String, List<String>> headers) {
         this.objectMapper = objectMapper;
@@ -98,6 +100,7 @@ public class UserSession {
         this.userId = anonymousUserId;
         this.anonymous = true;
         this.connectedAt = Instant.now();
+        this.irisSessionId = (String) session.getUserProperties().get(IRIS_SESSION_ID_HEADER);
         setupDefaultHeaders(session.getId(), headers);
         log.info("Created new user session. userId: {}, deviceId: {}", userId, clientDeviceId);
     }
@@ -114,7 +117,7 @@ public class UserSession {
         return connectedAt;
     }
 
-    //actions
+    // actions
     public void sendMessage(AmqpMessage message) {
         final var clientTraceId = message.clientTraceId();
         final var rawMessage = RawMessage.builder(objectMapper)
@@ -162,7 +165,7 @@ public class UserSession {
 
     }
 
-    public boolean isValid() {//todo implement more checks
+    public boolean isValid() {// todo implement more checks
         if (anonymous) {
             return true;
         }
@@ -206,7 +209,7 @@ public class UserSession {
      * @return true if socket is still valid after expire removal
      */
     public boolean removeExpired() {
-        //todo
+        // todo
         return isValid();
     }
 
@@ -323,8 +326,8 @@ public class UserSession {
                 clientIp = proxyIpList.getFirst();
             }
         }
-        if (clientIp ==null) {
-            log.warn("Could not find client ip from headers, tried 'X-Envoy-External-Address','X-Forwarded-For' sessionId: {}", sessionId);
+        if (clientIp == null) {
+            log.warn("Could not find client ip from headers, tried 'X-Envoy-External-Address','X-Forwarded-For' sessionId: {}, irisSessionId: {}", sessionId, irisSessionId);
         }
 
         // getting user agent from headers
@@ -343,7 +346,7 @@ public class UserSession {
         defaultMessageHeaders.put(PROXY_IP_ADDRESS, proxyIp);
 
         defaultMessageHeaders.put(USER_AGENT, userAgent);
-        defaultMessageHeaders.put(SESSION_ID, session.getId());
+        defaultMessageHeaders.put(SESSION_ID, irisSessionId);
         defaultMessageHeaders.put(USER_ID, userId);
         if (clientIp != null) {
             defaultMessageHeaders.put(IP_ADDRESS, clientIp);
@@ -365,10 +368,11 @@ public class UserSession {
     @Override
     public String toString() {
         return "UserSession{" +
-                "socketId='" + socketId + '\'' +
-                ", userId='" + userId + '\'' +
-                ", roles=" + roles +
-                '}';
+               "socketId='" + socketId + '\'' +
+               ", irisSessionId='" + irisSessionId + '\'' +
+               ", userId='" + userId + '\'' +
+               ", roles=" + roles +
+               '}';
     }
 
     @Override
@@ -379,7 +383,7 @@ public class UserSession {
             return false;
         UserSession that = (UserSession) o;
         return Objects.equals(socketId, that.socketId) &&
-                Objects.equals(userId, that.userId);
+               Objects.equals(userId, that.userId);
     }
 
     @Override

@@ -43,6 +43,8 @@ import jakarta.websocket.server.ServerEndpoint;
 public class SocketV1 {
     private static final Logger log = LoggerFactory.getLogger(SocketV1.class);
 
+    public static final String IRIS_SESSION_ID_HEADER = "x-iris-session-id";
+
     @Inject
     ObjectMapper objectMapper;
     @Inject
@@ -55,7 +57,8 @@ public class SocketV1 {
 
     @OnOpen
     public void onOpen(Session session, EndpointConfig conf) {
-        MDC.put(MDCProperties.SESSION_ID, session.getId());
+        final var irisSessionId = (String) conf.getUserProperties().get(IRIS_SESSION_ID_HEADER);
+        MDC.put(MDCProperties.SESSION_ID, irisSessionId);
         log.info("Web socket opened. userProperties: {} ", conf.getUserProperties());
         Map<String, List<String>> headers = Optional
                 .ofNullable((Map<String, List<String>>) conf.getUserProperties().remove("headers"))
@@ -67,7 +70,8 @@ public class SocketV1 {
 
     @OnClose
     public void onClose(Session session, CloseReason reason) {
-        MDC.put(MDCProperties.SESSION_ID, session.getId());
+        final var irisSessionId = (String) session.getUserProperties().get(IRIS_SESSION_ID_HEADER);
+        MDC.put(MDCProperties.SESSION_ID, irisSessionId);
         var userSession = websocketRegistry.removeSocket(session.getId());
         Optional.ofNullable(userSession).ifPresent(us -> MDC.put(MDCProperties.USER_ID, us.getUserId()));
         log.info("Closing websocket user session. reason: {}, closeCode: {}", reason.getReasonPhrase(),
@@ -75,8 +79,7 @@ public class SocketV1 {
         if (userSession != null) {
             userSession.close(reason);
             final var userId = userSession.getUserId();
-            final var sessionId = userSession.getId();
-            final var sessionClosed = new SessionClosed(sessionId, userId);
+            final var sessionClosed = new SessionClosed(irisSessionId, userId);
             backendService.sendInternalEvent(userSession, null, sessionClosed);
         }
         MDC.put(MDCProperties.SESSION_ID, session.getId());
@@ -90,8 +93,9 @@ public class SocketV1 {
 
     @OnMessage
     public void onMessage(Session session, String message) {
+        final var irisSessionId = (String) session.getUserProperties().get(IRIS_SESSION_ID_HEADER);
         try {
-            MDC.put(MDCProperties.SESSION_ID, session.getId());
+            MDC.put(MDCProperties.SESSION_ID, irisSessionId);
             if (message.isEmpty()) {
                 log.warn("Received empty message, discarding message.");
                 return;
