@@ -51,7 +51,7 @@ public class WebsocketRegistry {
     public UserSession startSession(Session session, Map<String, List<String>> headers) {
         UserSession userSession = createUserSession(session, headers);
         String userId = userSession.getUserId();
-        sockets.put(session.getId(), userSession);
+        sockets.put(userSession.getId(), userSession);
         users.computeIfAbsent(userId, s -> new CopyOnWriteArraySet<>()).add(userSession);
         return userSession;
     }

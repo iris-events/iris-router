@@ -90,18 +90,16 @@ public class UserSession {
     private String clientDeviceId = null;
     private boolean sendHeartbeat = false;
     private String userAgent;
-    private String irisSessionId;
 
     public UserSession(ObjectMapper objectMapper, Session session, Map<String, List<String>> headers) {
         this.objectMapper = objectMapper;
         this.session = Objects.requireNonNull(session);
-        this.socketId = session.getId();
-        this.anonymousUserId = generateAnonymousUserId(session.getId());
+        this.socketId = (String) session.getUserProperties().get(IRIS_SESSION_ID_HEADER);
+        this.anonymousUserId = generateAnonymousUserId(socketId);
         this.userId = anonymousUserId;
         this.anonymous = true;
         this.connectedAt = Instant.now();
-        this.irisSessionId = (String) session.getUserProperties().get(IRIS_SESSION_ID_HEADER);
-        setupDefaultHeaders(session.getId(), headers);
+        setupDefaultHeaders(socketId, headers);
         log.info("Created new user session. userId: {}, deviceId: {}", userId, clientDeviceId);
     }
 
@@ -327,7 +325,7 @@ public class UserSession {
             }
         }
         if (clientIp == null) {
-            log.warn("Could not find client ip from headers, tried 'X-Envoy-External-Address','X-Forwarded-For' sessionId: {}, irisSessionId: {}", sessionId, irisSessionId);
+            log.warn("Could not find client ip from headers, tried 'X-Envoy-External-Address','X-Forwarded-For' sessionId: {}", sessionId);
         }
 
         // getting user agent from headers
@@ -346,7 +344,7 @@ public class UserSession {
         defaultMessageHeaders.put(PROXY_IP_ADDRESS, proxyIp);
 
         defaultMessageHeaders.put(USER_AGENT, userAgent);
-        defaultMessageHeaders.put(SESSION_ID, irisSessionId);
+        defaultMessageHeaders.put(SESSION_ID, sessionId);
         defaultMessageHeaders.put(USER_ID, userId);
         if (clientIp != null) {
             defaultMessageHeaders.put(IP_ADDRESS, clientIp);
@@ -369,7 +367,6 @@ public class UserSession {
     public String toString() {
         return "UserSession{" +
                "socketId='" + socketId + '\'' +
-               ", irisSessionId='" + irisSessionId + '\'' +
                ", userId='" + userId + '\'' +
                ", roles=" + roles +
                '}';

@@ -70,19 +70,19 @@ public class SocketV1 {
 
     @OnClose
     public void onClose(Session session, CloseReason reason) {
-        final var irisSessionId = (String) session.getUserProperties().get(IRIS_SESSION_ID_HEADER);
-        MDC.put(MDCProperties.SESSION_ID, irisSessionId);
-        var userSession = websocketRegistry.removeSocket(session.getId());
+        final var sessionId = (String) session.getUserProperties().get(IRIS_SESSION_ID_HEADER);
+        MDC.put(MDCProperties.SESSION_ID, sessionId);
+        var userSession = websocketRegistry.removeSocket(sessionId);
         Optional.ofNullable(userSession).ifPresent(us -> MDC.put(MDCProperties.USER_ID, us.getUserId()));
         log.info("Closing websocket user session. reason: {}, closeCode: {}", reason.getReasonPhrase(),
                 reason.getCloseCode());
         if (userSession != null) {
             userSession.close(reason);
             final var userId = userSession.getUserId();
-            final var sessionClosed = new SessionClosed(irisSessionId, userId);
+            final var sessionClosed = new SessionClosed(sessionId, userId);
             backendService.sendInternalEvent(userSession, null, sessionClosed);
         }
-        MDC.put(MDCProperties.SESSION_ID, session.getId());
+        MDC.remove(MDCProperties.SESSION_ID);
     }
 
     @OnError
@@ -93,9 +93,9 @@ public class SocketV1 {
 
     @OnMessage
     public void onMessage(Session session, String message) {
-        final var irisSessionId = (String) session.getUserProperties().get(IRIS_SESSION_ID_HEADER);
+        final var sessionId = (String) session.getUserProperties().get(IRIS_SESSION_ID_HEADER);
         try {
-            MDC.put(MDCProperties.SESSION_ID, irisSessionId);
+            MDC.put(MDCProperties.SESSION_ID, sessionId);
             if (message.isEmpty()) {
                 log.warn("Received empty message, discarding message.");
                 return;
@@ -108,7 +108,7 @@ public class SocketV1 {
 
             Optional.ofNullable(msg.clientTraceId())
                     .ifPresent(clientTraceId -> MDC.put(MDCProperties.CLIENT_TRACE_ID, msg.clientTraceId()));
-            final var userSession = websocketRegistry.getSession(session.getId());
+            final var userSession = websocketRegistry.getSession(sessionId);
             if (userSession == null) {
                 log.warn("No open user session found, discarding message.");
                 return;
