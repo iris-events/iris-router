@@ -2,6 +2,7 @@ package org.iris_events.router.model;
 
 import static org.iris_events.common.MessagingHeaders.Message.ANONYMOUS_ID;
 import static org.iris_events.common.MessagingHeaders.Message.CLIENT_TRACE_ID;
+import static org.iris_events.common.MessagingHeaders.Message.CLIENT_VERSION;
 import static org.iris_events.common.MessagingHeaders.Message.DEVICE;
 import static org.iris_events.common.MessagingHeaders.Message.EVENT_TYPE;
 import static org.iris_events.common.MessagingHeaders.Message.IP_ADDRESS;
@@ -340,6 +341,12 @@ public class UserSession {
             clientDeviceId = deviceIds.getFirst();
         }
 
+        String clientVersion = null;
+        var clientVersionList = headers.get("x-client-version");
+        if(clientVersionList != null && !clientVersionList.isEmpty()) {
+            clientVersion = clientVersionList.getFirst();
+        }
+
         this.defaultMessageHeaders = new HashMap<>();
         defaultMessageHeaders.put(PROXY_IP_ADDRESS, proxyIp);
 
@@ -351,6 +358,9 @@ public class UserSession {
         }
         if (clientDeviceId != null) {
             defaultMessageHeaders.put(DEVICE, clientDeviceId);
+        }
+        if (clientVersion != null) {
+            defaultMessageHeaders.put(CLIENT_VERSION, clientVersion);
         }
         defaultMessageHeaders.put(ROUTER, RouterIdProvider.routerId());
     }
