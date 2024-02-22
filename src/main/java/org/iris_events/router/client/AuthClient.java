@@ -23,9 +23,9 @@ public class AuthClient {
             return jwtParser.parse(jwtToken);
         } catch (ParseException e) {
             if (e.getCause() instanceof InvalidJwtException ije) {
-                log.info("invalid jwt, context: {}, details: {}", ije.getJwtContext(),ije.getErrorDetails());
+                log.info("invalid jwt: {}", ije.getErrorDetails());
             }
-            log.warn("Could not parse token", e);
+            //log.warn("Could not parse token", e);
         } finally {
             MDC.remove("token");
         }

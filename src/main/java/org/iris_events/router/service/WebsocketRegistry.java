@@ -136,6 +136,9 @@ public class WebsocketRegistry {
     AuthClient authClient;
 
     public void updateUserId(String oldUserId, String newUserId) {
+        if (oldUserId.equals(newUserId)) {
+            return;
+        }
         LOGGER.info("updating identity for user: {}, --> {}", oldUserId, newUserId);
         Set<UserSession> sessions = users.computeIfAbsent(newUserId, s -> new CopyOnWriteArraySet<>());
         Set<UserSession> oldSessions = users.remove(oldUserId);

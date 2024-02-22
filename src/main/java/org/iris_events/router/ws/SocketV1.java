@@ -10,6 +10,7 @@ import java.util.UUID;
 import org.iris_events.router.events.ErrorEvent;
 import org.iris_events.router.events.HeartBeatEvent;
 import org.iris_events.router.model.RequestWrapper;
+import org.iris_events.router.model.UserSession;
 import org.iris_events.router.model.sub.SessionClosed;
 import org.iris_events.router.service.BackendService;
 import org.iris_events.router.service.WebsocketRegistry;
@@ -93,6 +94,7 @@ public class SocketV1 {
 
     @OnMessage
     public void onMessage(Session session, String message) {
+
         final var sessionId = (String) session.getUserProperties().get(IRIS_SESSION_ID_HEADER);
         try {
             MDC.put(MDCProperties.SESSION_ID, sessionId);
@@ -100,19 +102,21 @@ public class SocketV1 {
                 log.warn("Received empty message, discarding message.");
                 return;
             }
-
-            final var msgFromClient = objectMapper.readValue(message, RequestWrapper.class);
-            final var correlationId = UUID.randomUUID().toString();
-            MDC.put(MDCProperties.CORRELATION_ID, correlationId);
-            final var msg = msgFromClient.withCorrelationId(correlationId);
-
-            Optional.ofNullable(msg.clientTraceId())
-                    .ifPresent(clientTraceId -> MDC.put(MDCProperties.CLIENT_TRACE_ID, msg.clientTraceId()));
             final var userSession = websocketRegistry.getSession(sessionId);
             if (userSession == null) {
                 log.warn("No open user session found, discarding message.");
                 return;
             }
+
+            final var msgFromClient = objectMapper.readValue(message, RequestWrapper.class);
+            final var correlationId = UUID.randomUUID().toString();
+            MDC.put(MDCProperties.CORRELATION_ID, correlationId);
+            userSession.setupMDC();
+            final var msg = msgFromClient.withCorrelationId(correlationId);
+
+            Optional.ofNullable(msg.clientTraceId())
+                    .ifPresent(clientTraceId -> MDC.put(MDCProperties.CLIENT_TRACE_ID, msg.clientTraceId()));
+
 
             if (msg.event() == null) {
                 log.warn("'event' information missing, discarding message");
@@ -140,6 +144,7 @@ public class SocketV1 {
             MDC.remove(MDCProperties.SESSION_ID);
             MDC.remove(MDCProperties.EVENT_TYPE);
             MDC.remove(MDCProperties.CORRELATION_ID);
+            UserSession.clearMDC();
         }
     }
 
