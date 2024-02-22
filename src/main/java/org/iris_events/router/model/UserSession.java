@@ -46,6 +46,7 @@ import org.iris_events.common.message.ErrorMessage;
 import io.vertx.core.buffer.Buffer;
 import jakarta.websocket.CloseReason;
 import jakarta.websocket.Session;
+import org.slf4j.MDC;
 
 /**
  * @author Tomaz Cerar
@@ -55,6 +56,7 @@ public class UserSession {
     private static final Logger log = LoggerFactory.getLogger(UserSession.class);
 
     private final String anonymousUserId;
+    private String clientVersion = null;
 
     static String trimMessage(String message) {
         if (message == null) {
@@ -80,7 +82,6 @@ public class UserSession {
     private final String socketId;
     private final Instant connectedAt;
     private String userId;
-    private Instant blockedAt = Instant.EPOCH;
     private boolean anonymous;
     private Set<String> roles = Set.of();
     private final Session session;
@@ -101,7 +102,9 @@ public class UserSession {
         this.anonymous = true;
         this.connectedAt = Instant.now();
         setupDefaultHeaders(socketId, headers);
-        log.info("Created new user session. userId: {}, deviceId: {}", userId, clientDeviceId);
+        setupMDC();
+        log.info("Created new user session. userId: {}", userId);
+        clearMDC();
     }
 
     public String getId() {
@@ -148,15 +151,16 @@ public class UserSession {
         if (!isValid()) {
             log.warn("[{}] We are trying to write '{}' to socket that is not valid, userId: {}. Closing the socket.", socketId,
                     trimMessage(stringMessage), userId);
-            try {
-                sendSessionInvalidError(clientTraceId);
+            sendSessionInvalidError(clientTraceId);
+            /*try {
                 session.close(new CloseReason(CloseReason.CloseCodes.NORMAL_CLOSURE, ErrorEvent.UNAUTHORIZED_CLIENT_CODE));
             } catch (IOException e) {
                 log.warn("Could not close socket", e);
-            }
-        } else {
-            writeMessageDirect(stringMessage);
+            }*/
+            return;
         }
+        writeMessageDirect(stringMessage);
+
     }
 
     private void writeMessageDirect(String msg) {
@@ -164,7 +168,7 @@ public class UserSession {
 
     }
 
-    public boolean isValid() {// todo implement more checks
+    public boolean isValid() {
         if (anonymous) {
             return true;
         }
@@ -178,11 +182,15 @@ public class UserSession {
         }
 
         this.userId = token.getSubject();
-        update(token);
+        updateToken(token);
         anonymous = false;
     }
 
-    public void update(JsonWebToken token) {
+    private void updateToken(JsonWebToken token) {
+        if (this.token != null && this.token.getTokenID().equals(token.getTokenID())) {
+            log.info("Token is same, not updating");
+            return;
+        }
         if (!token.getSubject()
                 .equals(this.userId)) {
             log.warn("Could not update token for different user, sent user: {}, our user: {}", token.getSubject(), this.userId);
@@ -204,16 +212,12 @@ public class UserSession {
         return userId;
     }
 
-    /**
-     * @return true if socket is still valid after expire removal
-     */
-    public boolean removeExpired() {
-        // todo
-        return isValid();
-    }
-
     public String getUserId() {
         return userId;
+    }
+
+    public String getClientDeviceId() {
+        return clientDeviceId;
     }
 
     public boolean isSendHeartbeat() {
@@ -286,6 +290,7 @@ public class UserSession {
     }
 
     public void sendSessionInvalidError(final String clientTraceId) {
+        log.info("sending session invalid error to client, token expired: {}", socketId);
         final var errorEvent = getErrorEvent(
                 new ErrorMessage(ErrorType.UNAUTHORIZED, ErrorEvent.TOKEN_EXPIRED_CLIENT_CODE, "Token has expired."));
         final var rawErrorMessage = getRawMessage(errorEvent, clientTraceId);
@@ -341,7 +346,7 @@ public class UserSession {
             clientDeviceId = deviceIds.getFirst();
         }
 
-        String clientVersion = null;
+
         var clientVersionList = headers.get("x-client-version");
         if(clientVersionList != null && !clientVersionList.isEmpty()) {
             clientVersion = clientVersionList.getFirst();
@@ -363,6 +368,19 @@ public class UserSession {
             defaultMessageHeaders.put(CLIENT_VERSION, clientVersion);
         }
         defaultMessageHeaders.put(ROUTER, RouterIdProvider.routerId());
+    }
+    public void setupMDC() {
+        if (clientVersion != null) {
+            MDC.put("clientVersion", clientVersion);
+        }
+        if (clientDeviceId != null) {
+            MDC.put("deviceId", clientDeviceId);
+        }
+    }
+
+    public static void clearMDC(){
+        MDC.remove("clientVersion");
+        MDC.remove("deviceId");
     }
 
     private RawMessage getRawMessage(final RouterEvent event, final String clientTraceId) {
