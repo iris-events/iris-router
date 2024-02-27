@@ -7,6 +7,7 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
 
+import io.quarkus.logging.Log;
 import org.iris_events.router.events.ErrorEvent;
 import org.iris_events.router.events.HeartBeatEvent;
 import org.iris_events.router.model.RequestWrapper;
@@ -40,6 +41,8 @@ import jakarta.websocket.Session;
 import jakarta.websocket.server.ServerEndpoint;
 import org.slf4j.event.Level;
 
+import static io.quarkiverse.loggingjson.providers.KeyValueStructuredArgument.kv;
+
 @ServerEndpoint(value = "/v0/websocket", configurator = WsContainerConfigurator.class)
 @ApplicationScoped
 public class SocketV1 {
@@ -61,10 +64,8 @@ public class SocketV1 {
     public void onOpen(Session session, EndpointConfig conf) {
         final var irisSessionId = (String) conf.getUserProperties().get(IRIS_SESSION_ID_HEADER);
         MDC.put(MDCProperties.SESSION_ID, irisSessionId);
-        log.makeLoggingEventBuilder(Level.INFO)
-                .addKeyValue("headers", conf.getUserProperties())
-                .setMessage("Web socket opened.")
-                .log();
+        Log.infof("Web socket opened.", kv("headers", conf.getUserProperties()));
+
 
         Map<String, List<String>> headers = Optional
                 .ofNullable((Map<String, List<String>>) conf.getUserProperties().remove("headers"))

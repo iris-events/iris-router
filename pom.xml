@@ -109,8 +109,9 @@
             <artifactId>quarkus-opentelemetry</artifactId>
         </dependency>
         <dependency>
-            <groupId>io.quarkus</groupId>
+            <groupId>io.quarkiverse.loggingjson</groupId>
             <artifactId>quarkus-logging-json</artifactId>
+            <version>3.0.0</version>
         </dependency>
 
         <!-- Test dependencies-->
