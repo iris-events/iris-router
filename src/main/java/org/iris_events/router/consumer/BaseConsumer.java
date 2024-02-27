@@ -3,7 +3,6 @@ package org.iris_events.router.consumer;
 import com.rabbitmq.client.AMQP;
 import io.smallrye.reactive.messaging.rabbitmq.IncomingRabbitMQMetadata;
 import io.vertx.core.buffer.Buffer;
-import io.vertx.rabbitmq.RabbitMQMessage;
 import org.eclipse.microprofile.reactive.messaging.Message;
 import org.iris_events.common.MDCProperties;
 import org.iris_events.router.model.AmqpMessage;
@@ -19,9 +18,6 @@ import static org.iris_events.common.MessagingHeaders.Message.EVENT_TYPE;
 public abstract class BaseConsumer {
 
     private static final Logger log = LoggerFactory.getLogger(BaseConsumer.class);
-
-    /*@Inject
-    RabbitMQClient client;*/
 
     public static void enrichMDC(final AmqpMessage m) {
         if (m.sessionId() != null)
@@ -69,8 +65,12 @@ public abstract class BaseConsumer {
                         .correlationId(meta.getCorrelationId().orElse(null))
                         .build(),
                 event.toString());
-        enrichMDC(m);
-        onMessage(m);
-        return message.ack();
+        try {
+            enrichMDC(m);
+            onMessage(m);
+            return message.ack();
+        } finally {
+            MDC.clear();
+        }
     }
 }

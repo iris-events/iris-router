@@ -31,6 +31,7 @@ import java.util.UUID;
 
 import io.quarkus.runtime.annotations.RegisterForReflection;
 import org.eclipse.microprofile.jwt.JsonWebToken;
+import org.iris_events.common.MDCProperties;
 import org.iris_events.router.events.ErrorEvent;
 import org.iris_events.router.events.RouterEvent;
 import org.iris_events.router.service.RouterIdProvider;
@@ -380,7 +381,7 @@ public class UserSession {
 
     public static void clearMDC(){
         MDC.remove("clientVersion");
-        MDC.remove("deviceId");
+        MDC.remove(MDCProperties.USER_ID);
     }
 
     private RawMessage getRawMessage(final RouterEvent event, final String clientTraceId) {

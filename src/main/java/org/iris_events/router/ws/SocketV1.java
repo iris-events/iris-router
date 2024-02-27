@@ -38,6 +38,7 @@ import jakarta.websocket.OnMessage;
 import jakarta.websocket.OnOpen;
 import jakarta.websocket.Session;
 import jakarta.websocket.server.ServerEndpoint;
+import org.slf4j.event.Level;
 
 @ServerEndpoint(value = "/v0/websocket", configurator = WsContainerConfigurator.class)
 @ApplicationScoped
@@ -60,7 +61,11 @@ public class SocketV1 {
     public void onOpen(Session session, EndpointConfig conf) {
         final var irisSessionId = (String) conf.getUserProperties().get(IRIS_SESSION_ID_HEADER);
         MDC.put(MDCProperties.SESSION_ID, irisSessionId);
-        log.info("Web socket opened. userProperties: {} ", conf.getUserProperties());
+        log.makeLoggingEventBuilder(Level.INFO)
+                .addKeyValue("headers", conf.getUserProperties())
+                .setMessage("Web socket opened.")
+                .log();
+
         Map<String, List<String>> headers = Optional
                 .ofNullable((Map<String, List<String>>) conf.getUserProperties().remove("headers"))
                 .orElse(Collections.emptyMap());
@@ -84,6 +89,7 @@ public class SocketV1 {
             backendService.sendInternalEvent(userSession, null, sessionClosed);
         }
         MDC.remove(MDCProperties.SESSION_ID);
+        MDC.remove(MDCProperties.USER_ID);
     }
 
     @OnError
@@ -145,6 +151,7 @@ public class SocketV1 {
             MDC.remove(MDCProperties.EVENT_TYPE);
             MDC.remove(MDCProperties.CORRELATION_ID);
             UserSession.clearMDC();
+            MDC.clear();
         }
     }
 

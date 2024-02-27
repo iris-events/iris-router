@@ -31,7 +31,6 @@ public class WSResponseHandler extends DefaultResponseHandler {
 
     @Override
     protected void onSuccess(ResponseMessageType responseMessageType, AmqpMessage message) {
-        BaseConsumer.enrichMDC(message);
         if (responseMessageType == ResponseMessageType.USER) {
             sendUserMessage(message);
         } else if (responseMessageType == ResponseMessageType.SESSION) {

@@ -11,8 +11,10 @@ import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
+import org.iris_events.common.MDCProperties;
 import org.iris_events.common.MessagingHeaders;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -31,10 +33,10 @@ import org.slf4j.MDC;
 @ApplicationScoped
 public class RequestRegistry {
     private static final Logger requestLogger = LoggerFactory.getLogger("api");
-    //private static final Logger requestLogger = LoggerFactory.getLogger("api.ws");
     private static final Logger requestErrorLogger = LoggerFactory.getLogger("api.error");
     private static final Duration requestExpirationTime = Duration.ofSeconds(30);
 
+    private static final Set<String> NON_LOGGABLE_REQUESTS = Set.of("subscribe-internal", "heartbeat", "session");
     private final ConcurrentHashMap<String, BackendRequest> requests = new ConcurrentHashMap<>();
     private final int requestTimeLogThreshold = 5; // 5ms
 
@@ -62,7 +64,7 @@ public class RequestRegistry {
             ResponseHandler handler = request.responseHandler();
 
             Duration duration = Duration.between(request.created(), Instant.now());
-            if (duration.toMillis() >= requestTimeLogThreshold) {
+            if (duration.toMillis() >= requestTimeLogThreshold && !NON_LOGGABLE_REQUESTS.contains(request.dataType()) ) {
                 requestLogger.info("Request for '{}', params: {} took {} ms", request.dataType(),
                         request.requestBody(), duration.toMillis());
             }
@@ -79,7 +81,7 @@ public class RequestRegistry {
 
     @Scheduled(every = "10s", delay = 1)
     public void checkForExpiredRequests() {
-        final Instant expireTime = Instant.now().minus(Duration.ofSeconds(30));
+        final Instant expireTime = Instant.now().minus(requestExpirationTime);
         requests.values().forEach(n -> {
             if (n.created().isBefore(expireTime)) {
                 setDiagnosticData(n);
@@ -93,24 +95,34 @@ public class RequestRegistry {
                             "Request '%s' timeout, requestUri: %s, referer: '%s', request via: '%s',  original request: '%s' user agent: '%s'",
                             n.requestId(), n.requestUri(), n.referer(), n.requestVia(), n.requestBody(), n.userAgent());
                 }
-
                 requestErrorLogger.warn(msg);
                 requests.remove(n.requestId());
-
+                clearMCD();
             }
         });
     }
     private void setDiagnosticData(BackendRequest request){
         if (request.sessionId() != null) {
-            MDC.put("sessionId", request.sessionId());
+            MDC.put(MDCProperties.SESSION_ID, request.sessionId());
         }
         if (request.requestId() != null) {
-            MDC.put("correlationId", request.requestId());
+            MDC.put(MDCProperties.CORRELATION_ID, request.requestId());
         }
-        MDC.put("eventType", request.dataType());
+        MDC.put(MDCProperties.EVENT_TYPE, request.dataType());
         if (request.userId() != null) {
-            MDC.put("userId", request.userId());
+            MDC.put(MDCProperties.USER_ID, request.userId());
         }
+        if (request.device() != null) {
+            MDC.put("deviceId", request.device());
+        }
+    }
+
+    private void clearMCD() {
+        MDC.remove(MDCProperties.SESSION_ID);
+        MDC.remove(MDCProperties.CORRELATION_ID);
+        MDC.remove(MDCProperties.USER_ID);
+        MDC.remove(MDCProperties.EVENT_TYPE);
+        MDC.remove("deviceId");
     }
 
     public void registerNewRequest(AmqpMessage message, ResponseHandler responseHandler) {
