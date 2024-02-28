@@ -1,5 +1,6 @@
 package org.iris_events.router.ws;
 
+import java.io.IOException;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -8,8 +9,9 @@ import java.util.Optional;
 import java.util.UUID;
 
 import io.quarkus.logging.Log;
+import jakarta.annotation.PostConstruct;
+import org.iris_events.router.config.RouterConfig;
 import org.iris_events.router.events.ErrorEvent;
-import org.iris_events.router.events.HeartBeatEvent;
 import org.iris_events.router.model.RequestWrapper;
 import org.iris_events.router.model.UserSession;
 import org.iris_events.router.model.sub.SessionClosed;
@@ -39,9 +41,6 @@ import jakarta.websocket.OnMessage;
 import jakarta.websocket.OnOpen;
 import jakarta.websocket.Session;
 import jakarta.websocket.server.ServerEndpoint;
-import org.slf4j.event.Level;
-
-import static io.quarkiverse.loggingjson.providers.KeyValueStructuredArgument.kv;
 
 @ServerEndpoint(value = "/v0/websocket", configurator = WsContainerConfigurator.class)
 @ApplicationScoped
@@ -49,6 +48,8 @@ public class SocketV1 {
     private static final Logger log = LoggerFactory.getLogger(SocketV1.class);
 
     public static final String IRIS_SESSION_ID_HEADER = "x-iris-session-id";
+    @Inject
+    RouterConfig config;
 
     @Inject
     ObjectMapper objectMapper;
@@ -60,19 +61,43 @@ public class SocketV1 {
     @Any
     Instance<MessageHandler> messageHandlers;
 
+    @PostConstruct
+    void init(){
+        log.info("SocketV1 initialized.\nBanned user agents: {}\nBanned client versions: {} ", config.bannedUserAgents(), config.bannedClientVersions());
+    }
+
+
+
     @OnOpen
     public void onOpen(Session session, EndpointConfig conf) {
-        final var irisSessionId = (String) conf.getUserProperties().get(IRIS_SESSION_ID_HEADER);
-        MDC.put(MDCProperties.SESSION_ID, irisSessionId);
-        Log.infof("Web socket opened.", kv("headers", conf.getUserProperties()));
+        try {
+            final var irisSessionId = (String) conf.getUserProperties().get(IRIS_SESSION_ID_HEADER);
+            MDC.put(MDCProperties.SESSION_ID, irisSessionId);
+
+            Map<String, List<String>> headers = Optional
+                    .ofNullable((Map<String, List<String>>) conf.getUserProperties().remove("headers"))
+                    .orElse(Collections.emptyMap());
+
+            headers.forEach((k, v) -> MDC.put("header."+k, v.toString()));
+
+            /*if (checkForBannedClient(headers)) {
+                log.warn("Bad client, closing websocket.");
+                try {
+                    session.close(new CloseReason(CloseReason.CloseCodes.CANNOT_ACCEPT, "Bad client"));
+                } catch (IOException e) {
+                    //we don't care
+                }
+                return;
+            }*/
+            Log.infof("Web socket opened.");
 
 
-        Map<String, List<String>> headers = Optional
-                .ofNullable((Map<String, List<String>>) conf.getUserProperties().remove("headers"))
-                .orElse(Collections.emptyMap());
-        var userSession = websocketRegistry.startSession(session, headers);
-        conf.getUserProperties().put("user-session", userSession);
-        MDC.remove(MDCProperties.SESSION_ID);
+            var userSession = websocketRegistry.startSession(session, headers);
+            conf.getUserProperties().put("user-session", userSession);
+
+        } finally {
+            MDC.clear();
+        }
     }
 
     @OnClose

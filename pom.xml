@@ -14,7 +14,6 @@
         <connection>scm:git:git@github.com:iris-events/iris-router.git</connection>
         <developerConnection>scm:git:git@github.com:iris-events/iris-router.git</developerConnection>
         <url>https://github.com/iris-events/iris-router</url>
-        <tag>v3.0.5</tag>
     </scm>
     <licenses>
         <license>
@@ -32,7 +31,7 @@
         <version.surefire.plugin>3.2.5</version.surefire.plugin>
         <version.compiler.plugin>3.11.0</version.compiler.plugin>
         <version.globalid.iris-subscription-models>2.0.0</version.globalid.iris-subscription-models>
-        <quarkus.platform.version>3.7.4</quarkus.platform.version>
+        <quarkus.platform.version>3.8.1</quarkus.platform.version>
         <version.iris>6.0.4</version.iris>
         <maven.deploy.skip>true</maven.deploy.skip>
     </properties>
@@ -109,9 +108,8 @@
             <artifactId>quarkus-opentelemetry</artifactId>
         </dependency>
         <dependency>
-            <groupId>io.quarkiverse.loggingjson</groupId>
+            <groupId>io.quarkus</groupId>
             <artifactId>quarkus-logging-json</artifactId>
-            <version>3.0.0</version>
         </dependency>
 
         <!-- Test dependencies-->

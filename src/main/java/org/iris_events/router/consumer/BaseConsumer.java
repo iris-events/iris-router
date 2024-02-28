@@ -58,7 +58,6 @@ public abstract class BaseConsumer {
             throw new RuntimeException("Required header '" + EVENT_TYPE + "' missing on message");
         }
 
-        //todo properties
         AmqpMessage m = new AmqpMessage(Buffer.buffer(body),
                 new AMQP.BasicProperties().builder()
                         .headers(meta.getHeaders())
