@@ -39,7 +39,7 @@ public class WebsocketTest {
     @Test
     public void testSimpleMessage() throws Exception {
         try (Session session = ContainerProvider.getWebSocketContainer().connectToServer(Client.class, uri)) {
-            Assertions.assertEquals("CONNECT", MESSAGES.poll(10, TimeUnit.SECONDS));
+            Assertions.assertEquals("CONNECT", MESSAGES.poll(3, TimeUnit.SECONDS));
             send(session, new Subscribe(null, null, null, true));
             var event = MESSAGES.poll(30, TimeUnit.SECONDS);
             Assertions.assertNotNull(event);
