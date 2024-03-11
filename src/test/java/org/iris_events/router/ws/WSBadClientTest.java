@@ -2,6 +2,12 @@ package org.iris_events.router.ws;
 
 import io.quarkus.test.common.http.TestHTTPResource;
 import io.quarkus.test.junit.QuarkusTest;
+import jakarta.websocket.CloseReason;
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.Response;
+import okhttp3.WebSocketListener;
+import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
@@ -23,36 +29,41 @@ public class WSBadClientTest {
 
     @ParameterizedTest
     @ValueSource(strings = {"GlobaliD-iOS/4.8.0", "GlobaliD-Android/4.8.0"})
-    public void testBadUserAgent(String userAgent) throws Exception {
+    public void testBadUserAgentOKHttp(String userAgent) throws Exception {
         final CountDownLatch latch = new CountDownLatch(1);
-        var client = HttpClient.newHttpClient();
-        try  {
-            client
-                    .newWebSocketBuilder()
-                    .header("User-Agent", userAgent)
-                    .buildAsync(URI.create(uri.toString().replace("http:", "ws:")), new WebSocket.Listener() {
+        var client = new OkHttpClient.Builder()
+                .build();
+        try {
+            client.newWebSocket(new Request.Builder()
+                            .header("User-Agent", userAgent)
+                            .url(uri.toString().replace("http:", "ws:"))
+                            .build()
+                    , new WebSocketListener() {
                         @Override
-                        public void onOpen(WebSocket webSocket) {
-                            Assertions.fail("Should not connect");
+                        public void onClosed(@NotNull okhttp3.WebSocket webSocket, int code, @NotNull String reason) {
+                            log.info("onClose: {}, {}", code, reason);
+                            onClosing(webSocket, code, reason);
                         }
 
                         @Override
-                        public void onError(WebSocket webSocket, Throwable error) {
-                            log.warn("onError: {}", error.getMessage());
-                            latch.countDown();
-                            WebSocket.Listener.super.onError(webSocket, error);
+                        public void onClosing(@NotNull okhttp3.WebSocket webSocket, int code, @NotNull String reason) {
+                            log.info("onClosing: {}, {}", code, reason);
+                            if (code == CloseReason.CloseCodes.CANNOT_ACCEPT.getCode()) {
+                                latch.countDown();
+                                log.info("Socket closed as expected");
+                            }
                         }
-                    }).get(1, TimeUnit.SECONDS);
 
-        } catch (Exception e) {
-            latch.countDown();
-            log.info("Exception: {}", e.getMessage());
+                        @Override
+                        public void onOpen(@NotNull okhttp3.WebSocket webSocket, @NotNull Response response) {
+                            log.info("Connected");
+                        }
+                    }
+            );
+            Assertions.assertTrue(latch.await(10, TimeUnit.SECONDS), "Socket should have failed to open");
         } finally {
-            client.shutdownNow();
-            client.close();
+            client.dispatcher().executorService().close();
         }
-        Assertions.assertTrue(latch.await(5, TimeUnit.SECONDS), "Socket should have failed to open");
-
     }
 
     @ParameterizedTest

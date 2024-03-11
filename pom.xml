@@ -31,7 +31,7 @@
         <version.surefire.plugin>3.2.5</version.surefire.plugin>
         <version.compiler.plugin>3.11.0</version.compiler.plugin>
         <version.globalid.iris-subscription-models>2.0.0</version.globalid.iris-subscription-models>
-        <quarkus.platform.version>3.8.1</quarkus.platform.version>
+        <quarkus.platform.version>3.8.2</quarkus.platform.version>
         <version.iris>6.0.4</version.iris>
         <maven.deploy.skip>true</maven.deploy.skip>
     </properties>
@@ -78,10 +78,22 @@
         <dependency>
             <groupId>org.iris-events</groupId>
             <artifactId>iris-common</artifactId>
+            <exclusions>
+                <exclusion>
+                    <groupId>*</groupId>
+                    <artifactId>*</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
         <dependency>
             <groupId>org.iris-events</groupId>
             <artifactId>iris-asyncapi</artifactId>
+            <exclusions>
+                <exclusion>
+                    <groupId>*</groupId>
+                    <artifactId>*</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
         <dependency>
             <groupId>io.quarkus</groupId>
@@ -121,6 +133,12 @@
         <dependency>
             <groupId>io.rest-assured</groupId>
             <artifactId>rest-assured</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.squareup.okhttp3</groupId>
+            <artifactId>okhttp</artifactId>
+            <version>5.0.0-alpha.12</version>
             <scope>test</scope>
         </dependency>
     </dependencies>

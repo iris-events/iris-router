@@ -1,6 +1,7 @@
 package org.iris_events.router.ws;
 
 import java.io.IOException;
+import java.security.NoSuchAlgorithmException;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -10,6 +11,7 @@ import java.util.UUID;
 
 import io.quarkus.logging.Log;
 import jakarta.annotation.PostConstruct;
+import jakarta.enterprise.inject.spi.CDI;
 import org.iris_events.router.config.RouterConfig;
 import org.iris_events.router.events.ErrorEvent;
 import org.iris_events.router.model.RequestWrapper;
@@ -61,11 +63,33 @@ public class SocketV1 {
     @Any
     Instance<MessageHandler> messageHandlers;
 
+    private List<String> bannedUserAgents;
+    private List<String> bannedClients;
+
     @PostConstruct
     void init(){
         log.info("SocketV1 initialized.\nBanned user agents: {}\nBanned client versions: {} ", config.bannedUserAgents(), config.bannedClientVersions());
+        bannedUserAgents = config.bannedUserAgents();
+        bannedClients = config.bannedClientVersions();
     }
 
+    private boolean checkForBannedClient(Map<String, List<String>> headers) {
+        var userAgent = headers.getOrDefault("User-Agent", null);
+        var clientVersion = headers.getOrDefault("x-client-version", null);
+        if (userAgent != null && !bannedUserAgents.isEmpty()) {
+            if (bannedUserAgents.contains(userAgent.getFirst())) {
+                log.info("User agent {} is banned", userAgent);
+                return true;
+            }
+        }
+        if (clientVersion != null && !bannedClients.isEmpty()) {
+            if (bannedClients.contains(clientVersion.getFirst())) {
+                log.info("Client version {} is banned", clientVersion);
+                return true;
+            }
+        }
+        return false;
+    }
 
 
     @OnOpen
@@ -74,13 +98,15 @@ public class SocketV1 {
             final var irisSessionId = (String) conf.getUserProperties().get(IRIS_SESSION_ID_HEADER);
             MDC.put(MDCProperties.SESSION_ID, irisSessionId);
 
+
+
             Map<String, List<String>> headers = Optional
                     .ofNullable((Map<String, List<String>>) conf.getUserProperties().remove("headers"))
                     .orElse(Collections.emptyMap());
 
             headers.forEach((k, v) -> MDC.put("header."+k, v.toString()));
 
-            /*if (checkForBannedClient(headers)) {
+            if (checkForBannedClient(headers)) {
                 log.warn("Bad client, closing websocket.");
                 try {
                     session.close(new CloseReason(CloseReason.CloseCodes.CANNOT_ACCEPT, "Bad client"));
@@ -88,7 +114,7 @@ public class SocketV1 {
                     //we don't care
                 }
                 return;
-            }*/
+            }
             Log.infof("Web socket opened.");
 
 
