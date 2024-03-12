@@ -5,7 +5,6 @@ import io.quarkus.test.junit.QuarkusTest;
 import jakarta.websocket.CloseReason;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
-import okhttp3.Response;
 import okhttp3.WebSocketListener;
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.Assertions;
@@ -38,27 +37,7 @@ public class WSBadClientTest {
                             .header("User-Agent", userAgent)
                             .url(uri.toString().replace("http:", "ws:"))
                             .build()
-                    , new WebSocketListener() {
-                        @Override
-                        public void onClosed(@NotNull okhttp3.WebSocket webSocket, int code, @NotNull String reason) {
-                            log.info("onClose: {}, {}", code, reason);
-                            onClosing(webSocket, code, reason);
-                        }
-
-                        @Override
-                        public void onClosing(@NotNull okhttp3.WebSocket webSocket, int code, @NotNull String reason) {
-                            log.info("onClosing: {}, {}", code, reason);
-                            if (code == CloseReason.CloseCodes.CANNOT_ACCEPT.getCode()) {
-                                latch.countDown();
-                                log.info("Socket closed as expected");
-                            }
-                        }
-
-                        @Override
-                        public void onOpen(@NotNull okhttp3.WebSocket webSocket, @NotNull Response response) {
-                            log.info("Connected");
-                        }
-                    }
+                    , new BadClientSocketListener(latch)
             );
             Assertions.assertTrue(latch.await(10, TimeUnit.SECONDS), "Socket should have failed to open");
         } finally {
@@ -95,41 +74,41 @@ public class WSBadClientTest {
     })
     public void testBadClientVersion(String clientVersion) throws Exception {
         final CountDownLatch latch = new CountDownLatch(1);
-        HttpClient client = HttpClient.newHttpClient();
+        var client = new OkHttpClient.Builder()
+                .build();
         try {
-            var ws = client
-                    .newWebSocketBuilder()
-                    .header("x-client-version", clientVersion)
-                    .buildAsync(URI.create(uri.toString().replace("http:", "ws:")), new WebSocket.Listener() {
-
-                        @Override
-                        public void onError(WebSocket webSocket, Throwable error) {
-                            log.warn("onError: {}", error.getMessage());
-                            latch.countDown();
-                            WebSocket.Listener.super.onError(webSocket, error);
-                        }
-
-                    })/*.exceptionally(throwable -> {
-                        log.warn("Could not open ws connection: {}", throwable.getMessage());
-                        latch.countDown();
-                        return null;
-                    })*/
-                    .exceptionally(throwable -> {
-                        log.warn("Could not open ws connection: {}", throwable.getMessage());
-                        latch.countDown();
-                        return null;
-                    }).get(1, TimeUnit.SECONDS);
-
-
-        } catch (Exception e) {
-            latch.countDown();
-            log.info("Exception: {}", e.getMessage());
+            client.newWebSocket(new Request.Builder()
+                            .header("x-client-version", clientVersion)
+                            .url(uri.toString().replace("http:", "ws:"))
+                            .build()
+                    , new BadClientSocketListener(latch)
+            );
+            Assertions.assertTrue(latch.await(10, TimeUnit.SECONDS), "Socket should have failed to open");
         } finally {
-            client.shutdownNow();
-            client.close();
+            client.dispatcher().executorService().close();
         }
-        Assertions.assertTrue(latch.await(5, TimeUnit.SECONDS), "Socket should have failed to open");
     }
 
+    private static class BadClientSocketListener extends WebSocketListener {
+        private final CountDownLatch latch;
 
+        public BadClientSocketListener(CountDownLatch latch) {
+            this.latch = latch;
+        }
+
+        @Override
+        public void onClosed(@NotNull okhttp3.WebSocket webSocket, int code, @NotNull String reason) {
+            log.info("onClose: {}, {}", code, reason);
+            onClosing(webSocket, code, reason);
+        }
+
+        @Override
+        public void onClosing(@NotNull okhttp3.WebSocket webSocket, int code, @NotNull String reason) {
+            log.info("onClosing: {}, {}", code, reason);
+            if (code == CloseReason.CloseCodes.CANNOT_ACCEPT.getCode()) {
+                latch.countDown();
+                log.info("Socket closed as expected");
+            }
+        }
+    }
 }
