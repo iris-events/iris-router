@@ -9,12 +9,13 @@
     </parent>
     <groupId>org.iris-events</groupId>
     <artifactId>iris-router</artifactId>
-    <version>3.0.10-SNAPSHOT</version>
+    <version>3.0.10</version>
     <scm>
         <connection>scm:git:git@github.com:iris-events/iris-router.git</connection>
         <developerConnection>scm:git:git@github.com:iris-events/iris-router.git</developerConnection>
         <url>https://github.com/iris-events/iris-router</url>
-    </scm>
+      <tag>v3.0.10</tag>
+  </scm>
     <licenses>
         <license>
             <name>The Apache Software License, Version 2.0</name>
