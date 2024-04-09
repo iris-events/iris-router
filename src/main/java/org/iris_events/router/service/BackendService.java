@@ -8,7 +8,6 @@ import org.eclipse.microprofile.reactive.messaging.Channel;
 import org.eclipse.microprofile.reactive.messaging.Emitter;
 import org.eclipse.microprofile.reactive.messaging.Metadata;
 import org.iris_events.annotations.Message;
-import org.iris_events.asyncapi.parsers.ExchangeParser;
 import org.iris_events.router.model.AmqpMessage;
 import org.iris_events.router.model.IdentityAuthenticated;
 import org.iris_events.router.model.RequestWrapper;
@@ -78,7 +77,7 @@ public class BackendService {
 
     private void sendInternalEvent(final UserSession userSession, final String clientTraceId, final Object message, Emitter<Buffer> emitter) {
         final var messageAnnotation = message.getClass().getAnnotation(Message.class);
-        final var name = ExchangeParser.getFromAnnotationClass(messageAnnotation);
+        final var name = messageAnnotation.name();
         final var msg = new RequestWrapper(name, clientTraceId, objectMapper.valueToTree(message));
         final var amqpMessage = userSession.createBackendRequest(msg);
         sendInternalEventToBackend(amqpMessage, emitter);
