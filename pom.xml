@@ -33,7 +33,7 @@
         <version.compiler.plugin>3.11.0</version.compiler.plugin>
         <version.globalid.iris-subscription-models>2.0.0</version.globalid.iris-subscription-models>
         <quarkus.platform.version>3.9.2</quarkus.platform.version>
-        <version.iris>6.0.4</version.iris>
+        <version.iris>6.1.0</version.iris>
         <maven.deploy.skip>true</maven.deploy.skip>
     </properties>
     <dependencyManagement>
@@ -46,32 +46,11 @@
                 <scope>import</scope>
             </dependency>
 
-            <dependency>
-                <groupId>id.global.iris</groupId>
-                <artifactId>iris-subscription-models</artifactId>
-                <version>${version.globalid.iris-subscription-models}</version>
-                <exclusions>
-                    <exclusion>
-                        <groupId>*</groupId>
-                        <artifactId>*</artifactId>
-                    </exclusion>
-                </exclusions>
-            </dependency>
+
             <dependency>
                 <groupId>org.iris-events</groupId>
                 <artifactId>iris-common</artifactId>
                 <version>${version.iris}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.iris-events</groupId>
-                <artifactId>iris-asyncapi</artifactId>
-                <version>${version.iris}</version>
-                <exclusions>
-                    <exclusion>
-                        <groupId>*</groupId>
-                        <artifactId>*</artifactId>
-                    </exclusion>
-                </exclusions>
             </dependency>
         </dependencies>
     </dependencyManagement>
@@ -79,22 +58,6 @@
         <dependency>
             <groupId>org.iris-events</groupId>
             <artifactId>iris-common</artifactId>
-            <exclusions>
-                <exclusion>
-                    <groupId>*</groupId>
-                    <artifactId>*</artifactId>
-                </exclusion>
-            </exclusions>
-        </dependency>
-        <dependency>
-            <groupId>org.iris-events</groupId>
-            <artifactId>iris-asyncapi</artifactId>
-            <exclusions>
-                <exclusion>
-                    <groupId>*</groupId>
-                    <artifactId>*</artifactId>
-                </exclusion>
-            </exclusions>
         </dependency>
         <dependency>
             <groupId>io.quarkus</groupId>
@@ -102,7 +65,7 @@
         </dependency>
         <dependency>
             <groupId>io.quarkus</groupId>
-            <artifactId>quarkus-smallrye-reactive-messaging-rabbitmq</artifactId>
+            <artifactId>quarkus-messaging-rabbitmq</artifactId>
         </dependency>
         <dependency>
             <groupId>io.quarkus</groupId>
