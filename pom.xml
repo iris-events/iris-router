@@ -33,7 +33,7 @@
         <version.compiler.plugin>3.11.0</version.compiler.plugin>
         <version.globalid.iris-subscription-models>2.0.0</version.globalid.iris-subscription-models>
         <quarkus.platform.version>3.9.2</quarkus.platform.version>
-        <version.iris>6.1.0</version.iris>
+        <version.iris>6.1.1</version.iris>
         <maven.deploy.skip>true</maven.deploy.skip>
     </properties>
     <dependencyManagement>
