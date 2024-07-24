@@ -19,6 +19,7 @@ import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.nio.ByteBuffer;
 import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
@@ -150,8 +151,10 @@ public class UserSession {
         }
 
         if (!isValid()) {
+            MDC.put("tokenExpiry", tokenExpiry.toString());
             log.warn("[{}] We are trying to write '{}' to socket that is not valid, userId: {}. Closing the socket.", socketId,
                     trimMessage(stringMessage), userId);
+            MDC.remove("tokenExpiry");
             sendSessionInvalidError(clientTraceId);
             /*try {
                 session.close(new CloseReason(CloseReason.CloseCodes.NORMAL_CLOSURE, ErrorEvent.UNAUTHORIZED_CLIENT_CODE));
@@ -199,7 +202,11 @@ public class UserSession {
         }
         this.token = token;
         this.roles = token.getGroups();
-        this.tokenExpiry = Instant.ofEpochSecond(token.getExpirationTime());
+        this.tokenExpiry = Instant.ofEpochSecond(token.getExpirationTime())
+                .plus(30, ChronoUnit.SECONDS); //add 30 seconds grace period
+        if (Instant.now().getEpochSecond() <= token.getExpirationTime()){
+            log.warn("Token is already expired, token expiry: {}", token.getExpirationTime());
+        }
     }
 
     public void updateDeviceId(String clientDeviceId) {

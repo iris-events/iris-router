@@ -3,7 +3,6 @@ package org.iris_events.router.service;
 import static org.iris_events.common.MessagingHeaders.Message.DEVICE;
 import static org.iris_events.common.MessagingHeaders.Message.IP_ADDRESS;
 import static org.iris_events.common.MessagingHeaders.Message.REQUEST_REFERER;
-import static org.iris_events.common.MessagingHeaders.Message.REQUEST_URI;
 import static org.iris_events.common.MessagingHeaders.Message.REQUEST_VIA;
 import static org.iris_events.common.MessagingHeaders.Message.USER_AGENT;
 
@@ -15,7 +14,6 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.iris_events.common.MDCProperties;
-import org.iris_events.common.MessagingHeaders;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -38,7 +36,7 @@ public class RequestRegistry {
 
     private static final Set<String> NON_LOGGABLE_REQUESTS = Set.of("subscribe-internal", "heartbeat", "session");
     private final ConcurrentHashMap<String, BackendRequest> requests = new ConcurrentHashMap<>();
-    private final int requestTimeLogThreshold = 5; // 5ms
+    private final int requestTimeLogThreshold = 10; // 5ms
 
     public RequestRegistry() {
 
@@ -85,16 +83,10 @@ public class RequestRegistry {
         requests.values().forEach(n -> {
             if (n.created().isBefore(expireTime)) {
                 setDiagnosticData(n);
-                String msg;
-                if (n.requestUri() == null) {
-                    msg = String.format(
+                String msg = String.format(
                             "Request '%s' timeout, data type: '%s' device: '%s', original request: '%s' user agent: '%s', userId: '%s'",
                             n.requestId(), n.dataType(), n.device(), n.requestBody(), n.userAgent(), n.userId());
-                } else {
-                    msg = String.format(
-                            "Request '%s' timeout, requestUri: %s, referer: '%s', request via: '%s',  original request: '%s' user agent: '%s'",
-                            n.requestId(), n.requestUri(), n.referer(), n.requestVia(), n.requestBody(), n.userAgent());
-                }
+
                 requestErrorLogger.warn(msg);
                 requests.remove(n.requestId());
                 clearMCD();
@@ -131,14 +123,13 @@ public class RequestRegistry {
         String ipAddress = (String) properties.get(IP_ADDRESS);
         String userAgent = (String) properties.get(USER_AGENT);
         String referer = (String) properties.get(REQUEST_REFERER);
-        String requestUri = (String) properties.get(REQUEST_URI);
         String requestVia = (String) properties.get(REQUEST_VIA);
         String device = (String) properties.get(DEVICE);
         String userId = message.userId();
         String sessionId = message.sessionId();
         String request = message.body().copy().toString(StandardCharsets.UTF_8);
         registerNewRequest(
-                new BackendRequest(message.correlationId(), eventType, Instant.now(), request, requestUri, ipAddress, userAgent,
+                new BackendRequest(message.correlationId(), eventType, Instant.now(), request, ipAddress, userAgent,
                         referer, requestVia, device, userId, sessionId, responseHandler));
 
     }

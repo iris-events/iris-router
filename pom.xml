@@ -31,7 +31,6 @@
         <maven.compiler.parameters>true</maven.compiler.parameters>
         <version.surefire.plugin>3.3.0</version.surefire.plugin>
         <version.compiler.plugin>3.11.0</version.compiler.plugin>
-        <version.globalid.iris-subscription-models>2.0.0</version.globalid.iris-subscription-models>
         <quarkus.platform.version>3.11.2</quarkus.platform.version>
         <version.iris>6.1.0</version.iris>
         <maven.deploy.skip>true</maven.deploy.skip>
@@ -97,12 +96,6 @@
         <dependency>
             <groupId>io.rest-assured</groupId>
             <artifactId>rest-assured</artifactId>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>com.squareup.okhttp3</groupId>
-            <artifactId>okhttp</artifactId>
-            <version>5.0.0-alpha.12</version>
             <scope>test</scope>
         </dependency>
     </dependencies>
