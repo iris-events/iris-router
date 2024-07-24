@@ -204,6 +204,7 @@ public class UserSession {
         this.roles = token.getGroups();
         this.tokenExpiry = Instant.ofEpochSecond(token.getExpirationTime())
                 .plus(30, ChronoUnit.SECONDS); //add 30 seconds grace period
+        log.info("token expiry: {}",tokenExpiry);
         if (Instant.now().getEpochSecond() <= token.getExpirationTime()){
             log.warn("Token is already expired, token expiry: {}", token.getExpirationTime());
         }

@@ -84,8 +84,8 @@ public class RequestRegistry {
             if (n.created().isBefore(expireTime)) {
                 setDiagnosticData(n);
                 String msg = String.format(
-                            "Request '%s' timeout, data type: '%s' device: '%s', original request: '%s' user agent: '%s', userId: '%s'",
-                            n.requestId(), n.dataType(), n.device(), n.requestBody(), n.userAgent(), n.userId());
+                            "Request '%s' timeout, data type: '%s' device: '%s', user agent: '%s', userId: '%s'",
+                            n.requestId(), n.dataType(), n.device(), n.userAgent(), n.userId());
 
                 requestErrorLogger.warn(msg);
                 requests.remove(n.requestId());
@@ -93,19 +93,27 @@ public class RequestRegistry {
             }
         });
     }
-    private void setDiagnosticData(BackendRequest request){
+
+    private void setDiagnosticData(BackendRequest request) {
+        MDC.put(MDCProperties.EVENT_TYPE, request.dataType());
+        MDC.put("sentAt", request.created().toString());
         if (request.sessionId() != null) {
             MDC.put(MDCProperties.SESSION_ID, request.sessionId());
         }
         if (request.requestId() != null) {
             MDC.put(MDCProperties.CORRELATION_ID, request.requestId());
         }
-        MDC.put(MDCProperties.EVENT_TYPE, request.dataType());
         if (request.userId() != null) {
             MDC.put(MDCProperties.USER_ID, request.userId());
         }
+        if (request.userAgent() != null) {
+            MDC.put("userAgent", request.userAgent());
+        }
         if (request.device() != null) {
             MDC.put("deviceId", request.device());
+        }
+        if (request.requestBody() != null) {
+            MDC.put("payload", request.requestBody());
         }
     }
 
