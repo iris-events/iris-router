@@ -33,7 +33,10 @@ public abstract class BaseConsumer {
         if (m.userAgent() != null)
             MDC.put("userAgent", m.userAgent());
         if (m.deviceId() != null)
-            MDC.put("device", m.deviceId());
+            MDC.put("deviceId", m.deviceId());
+        if (m.originServiceId() != null){
+            MDC.put("originService", m.originServiceId());
+        }
         MDC.put(MDCProperties.EVENT_TYPE, m.eventType());
     }
 

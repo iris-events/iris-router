@@ -43,37 +43,11 @@ public abstract class AbstractRabbitMqConsumer extends BaseConsumer {
 
     //non rpc message, handle on websocket
     protected void sendToSocket(AmqpMessage message) {
-        final var handlers = getResponseHandlers(message);
+        final var handler = websocketRegistry.getResponseHandler();
         final var responseMessageType = getSocketMessageType();
-        handlers.forEach(handler -> handler.handle(responseMessageType, message));
+        handler.handle(responseMessageType, message);
     }
 
-    private List<ResponseHandler> getResponseHandlers(AmqpMessage message) {
-        List<ResponseHandler> handlers = new ArrayList<>();
-        if (getSocketMessageType() == ResponseMessageType.BROADCAST) {
-            handlers.add(websocketRegistry.getResponseHandler());
-        }
-        String userId = message.userId();
-        String sessionId = message.sessionId();
-        if (handlers.isEmpty() && sessionId != null) {
-            if (websocketRegistry.getSession(sessionId) != null) {
-                handlers.add(websocketRegistry.getResponseHandler());
-            }
-        }
-        if (handlers.isEmpty() && userId != null) {
-            if (websocketRegistry.hasUserSession(userId)) {
-                handlers.add(websocketRegistry.getResponseHandler());
-            }
-        }
-        if (handlers.isEmpty()) {
-            if (log.isTraceEnabled()) {
-                log.warn("Got message that we cannot find response handler for: sessionId: {}, userId: {}, event: {}",
-                        sessionId, userId, message.eventType());
-            }
-            handlers.add(websocketRegistry.getResponseHandler());
-        }
-        return handlers;
-    }
 
     @Override
     public void onMessage(AmqpMessage message) {

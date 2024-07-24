@@ -22,7 +22,7 @@ public abstract class DefaultResponseHandler implements ResponseHandler {
             if (responseMessageType != ResponseMessageType.ERROR) {
                 onSuccess(responseMessageType, message);
             } else {
-                log.info("Handling exception error message. {}/{}", message.originServiceId(), message.eventType());
+                log.info("Handling exception error message. {}/{}", message.currentServiceId(), message.eventType());
                 onFailure(message);
             }
         } finally {

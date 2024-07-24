@@ -205,8 +205,8 @@ public class UserSession {
         this.tokenExpiry = Instant.ofEpochSecond(token.getExpirationTime())
                 .plus(30, ChronoUnit.SECONDS); //add 30 seconds grace period
         log.info("token expiry: {}",tokenExpiry);
-        if (Instant.now().getEpochSecond() <= token.getExpirationTime()){
-            log.warn("Token is already expired, token expiry: {}", token.getExpirationTime());
+        if (Instant.now().getEpochSecond() > token.getExpirationTime()){
+            log.warn("Token is already expired, token expiry: {}, issued at: {}", token.getExpirationTime(), token.getIssuedAtTime());
         }
     }
 
@@ -269,7 +269,12 @@ public class UserSession {
         headers.put(REQUEST_VIA, "router/WebSocket");
         if (log.isTraceEnabled()) {
             var copy = new HashMap<>(headers);
-            log.trace("[{}] backend payload: {},  headers: {}", getUserId(), requestMessage.payload(), copy);
+            setupMDC();
+            MDC.put(MDCProperties.USER_ID, userId);
+            MDC.put("payload",  requestMessage.payload().toString());
+            MDC.put("headers",  copy.toString());
+            log.trace("[{}] sending to backend",eventType);
+            clearMDC();
         }
 
         final AMQP.BasicProperties messageProperties = new AMQP.BasicProperties()
