@@ -196,7 +196,7 @@ public class SocketV1 {
             final var messageHandler = getMessageHandler(msg.event());
             messageHandler.handle(userSession, msg);
         } catch (Exception e) {
-            log.error("Could not handle websocket client message", e);
+            log.error("Could not handle websocket client message {}", e.getMessage());
             session.getAsyncRemote().sendText("Could not read message " + e.getMessage());
         }finally {
             MDC.remove(MDCProperties.SESSION_ID);

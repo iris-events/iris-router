@@ -1,13 +1,11 @@
 package org.iris_events.router.service;
 
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArraySet;
 import java.util.concurrent.TimeUnit;
 
+import org.iris_events.router.config.RouterConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -31,21 +29,24 @@ import jakarta.websocket.Session;
 public class WebsocketRegistry {
     private static final Logger LOGGER = LoggerFactory.getLogger(WebsocketRegistry.class);
 
-    protected static final Set<String> NON_RPC_DATATYPES = Set.of("subscribe-message",
+    private static final Set<String> NON_RPC_DATATYPES = Set.of("subscribe-message",
             "unsubscribe-message",
-            "session-closed",
-            "log-users-activity");
+            "session-closed");
     private final WSResponseHandler responseHandler;
     private final ObjectMapper objectMapper;
 
     protected final ConcurrentHashMap<String, UserSession> sockets = new ConcurrentHashMap<>();
     protected final ConcurrentHashMap<String, Set<UserSession>> users = new ConcurrentHashMap<>();
     protected final RequestRegistry requestRegistry;
+    private final List<String> nonRpcEvents;
 
-    public WebsocketRegistry(RequestRegistry requestRegistry, ObjectMapper objectMapper) {
+    public WebsocketRegistry(RequestRegistry requestRegistry, ObjectMapper objectMapper, RouterConfig config) {
         this.requestRegistry = requestRegistry;
         this.responseHandler = new WSResponseHandler(this, objectMapper);
         this.objectMapper = objectMapper;
+        this.nonRpcEvents = new ArrayList<>(config.nonRpcEvents());
+        LOGGER.info("non rpc requests: {}", nonRpcEvents);
+        this.nonRpcEvents.addAll(NON_RPC_DATATYPES);
     }
 
     public UserSession startSession(Session session, Map<String, List<String>> headers) {
@@ -112,8 +113,8 @@ public class WebsocketRegistry {
 
     public void registerRequest(AmqpMessage message) {
 
-        String dataType = message.eventType();
-        if (NON_RPC_DATATYPES.contains(dataType)) {
+        String eventType = message.eventType();
+        if (nonRpcEvents.contains(eventType)) {
             return;
         }
 
@@ -152,7 +153,7 @@ public class WebsocketRegistry {
         if (jwtToken != null) {
             var oldId = userSession.getUserId();
             userSession.login(jwtToken);
-            LOGGER.info("user logged in: {}, roles: {}", jwtToken.getSubject(), jwtToken.getGroups());
+            LOGGER.info("user logged in: {}, roles: {}, token expiry: {}", jwtToken.getSubject(), jwtToken.getGroups(), jwtToken.getExpirationTime());
             updateUserId(oldId, userSession.getUserId());
             return true;
         } else {

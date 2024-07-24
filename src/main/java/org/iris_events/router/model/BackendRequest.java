@@ -12,7 +12,7 @@ import io.vertx.core.buffer.Buffer;
  */
 @RegisterForReflection
 public record BackendRequest(String requestId, String dataType, Instant created,
-        String requestBody, String requestUri, String ipAddress,
+        String requestBody, String ipAddress,
         String userAgent, String referer, String requestVia,
         String device, String userId, String sessionId,
         ResponseHandler responseHandler) {
@@ -20,14 +20,13 @@ public record BackendRequest(String requestId, String dataType, Instant created,
     private static final Pattern SENSITIVE_PATTERN = Pattern
             .compile("\"(?:email|password|authentication|jwtToken|token)\":\"([^\"]+)\"");
 
-    public BackendRequest(String requestId, String dataType, Instant created, String requestBody, String requestUri,
+    public BackendRequest(String requestId, String dataType, Instant created, String requestBody,
             String ipAddress, String userAgent, String referer, String requestVia, String device, String userId,
             String sessionId, ResponseHandler responseHandler) {
         this.requestId = requestId;
         this.dataType = dataType;
         this.created = created;
         this.requestBody = sanitizeBody(shortenRequestBody(requestBody));
-        this.requestUri = requestUri;
         this.ipAddress = ipAddress;
         this.userAgent = userAgent;
         this.referer = referer;

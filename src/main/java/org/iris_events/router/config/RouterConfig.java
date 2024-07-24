@@ -15,4 +15,8 @@ public interface RouterConfig {
     List<String> bannedClientVersions();
 
 
+    @WithDefault("[]")
+    List<String> nonRpcEvents();
+
+
 }
