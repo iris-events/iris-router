@@ -51,13 +51,18 @@ public class RequestRegistry {
         return requests.get(requestId);
     }
 
-    public boolean isRequestValid(String requestId) {
-        return requestId != null && requests.containsKey(requestId);
+    public boolean isRequestValid(String correlationId, String userId) {
+        if(correlationId != null && userId != null) {
+            return requests.containsKey(buildRequestId(correlationId, userId));
+        }
+        return false;
     }
 
     public void publishResponse(ResponseMessageType messageType, AmqpMessage message) {
-        String correlationId = message.correlationId();
-        BackendRequest request = requests.get(correlationId);
+        final String correlationId = message.correlationId();
+        final String userId = message.userId();
+        final String requestId = buildRequestId(correlationId, userId);
+        BackendRequest request = requests.get(requestId);
         if (request != null) {
             ResponseHandler handler = request.responseHandler();
 
@@ -70,7 +75,7 @@ public class RequestRegistry {
             if (requestLogger.isTraceEnabled()) {
                 requestLogger.info("Request handled successfully - removing request.");
             }
-            requests.remove(correlationId);
+            requests.remove(requestId);
         } else {
             requestErrorLogger.warn("Could not properly handle message, request/correlation id no longer active.");
         }
@@ -136,10 +141,16 @@ public class RequestRegistry {
         String userId = message.userId();
         String sessionId = message.sessionId();
         String request = message.body().copy().toString(StandardCharsets.UTF_8);
+        String requestId = buildRequestId(message.correlationId(), message.userId());
         registerNewRequest(
-                new BackendRequest(message.correlationId(), eventType, Instant.now(), request, ipAddress, userAgent,
+                new BackendRequest(requestId, eventType, Instant.now(), request, ipAddress, userAgent,
                         referer, requestVia, device, userId, sessionId, responseHandler));
 
+    }
+
+    private static String buildRequestId(String correlationId, String userId) {
+        // requestId must contain both correlationId and userId as userId could potentially change (send to another user)
+        return correlationId + "-" + userId;
     }
 
 }

@@ -279,7 +279,7 @@ public class UserSession {
 
         final AMQP.BasicProperties messageProperties = new AMQP.BasicProperties()
                 .builder()
-                .correlationId(requestMessage.correlationId())
+                .correlationId(UUID.randomUUID().toString())
                 .timestamp(new Date())
                 .headers(headers)
                 .build();
