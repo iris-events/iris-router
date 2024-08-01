@@ -167,41 +167,38 @@ public class SocketV1 {
             }
 
             final var msgFromClient = objectMapper.readValue(message, RequestWrapper.class);
-            final var correlationId = UUID.randomUUID().toString();
-            MDC.put(MDCProperties.CORRELATION_ID, correlationId);
             userSession.setupMDC();
-            final var msg = msgFromClient.withCorrelationId(correlationId);
-
-            Optional.ofNullable(msg.clientTraceId())
-                    .ifPresent(clientTraceId -> MDC.put(MDCProperties.CLIENT_TRACE_ID, msg.clientTraceId()));
+            Optional.ofNullable(msgFromClient.clientTraceId())
+                    .ifPresent(clientTraceId -> MDC.put(MDCProperties.CLIENT_TRACE_ID, msgFromClient.clientTraceId()));
 
 
-            if (msg.event() == null) {
+            if (msgFromClient.event() == null) {
                 log.warn("'event' information missing, discarding message");
                 final var errorEvent = new ErrorMessage(ErrorType.BAD_PAYLOAD, ErrorEvent.EVENT_MISSING_CLIENT_CODE, "'event' missing");
-                userSession.sendErrorMessage(errorEvent, msg.clientTraceId());
+                userSession.sendErrorMessage(errorEvent, msgFromClient.clientTraceId());
                 return;
             }
 
-            if (msg.payload() == null) {
+            if (msgFromClient.payload() == null) {
                 log.warn("'payload' missing, discarding message.");
                 final var errorEvent = new ErrorMessage(ErrorType.BAD_PAYLOAD, ErrorEvent.PAYLOAD_MISSING_CLIENT_CODE,
                         "'payload' missing");
-                userSession.sendErrorMessage(errorEvent, msg.clientTraceId());
+                userSession.sendErrorMessage(errorEvent, msgFromClient.clientTraceId());
                 return;
             }
 
-            MDC.put(MDCProperties.EVENT_TYPE, msg.event());
+            MDC.put(MDCProperties.EVENT_TYPE, msgFromClient.event());
             //log.info("Handling websocket client message.");
-            final var messageHandler = getMessageHandler(msg.event());
-            messageHandler.handle(userSession, msg);
+            final var messageHandler = getMessageHandler(msgFromClient.event());
+            messageHandler.handle(userSession, msgFromClient);
         } catch (Exception e) {
             log.error("Could not handle websocket client message {}", e.getMessage());
             session.getAsyncRemote().sendText("Could not read message " + e.getMessage());
-        }finally {
+        } finally {
             MDC.remove(MDCProperties.SESSION_ID);
             MDC.remove(MDCProperties.EVENT_TYPE);
             MDC.remove(MDCProperties.CORRELATION_ID);
+            MDC.remove(MDCProperties.CLIENT_TRACE_ID);
             UserSession.clearMDC();
             MDC.clear();
         }

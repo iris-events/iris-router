@@ -2,8 +2,6 @@ package org.iris_events.router.consumer;
 
 import jakarta.inject.Inject;
 import org.iris_events.router.model.AmqpMessage;
-import org.iris_events.router.model.ResponseHandler;
-import org.iris_events.router.model.ResponseMessageType;
 import org.iris_events.router.service.RequestRegistry;
 import org.iris_events.router.service.RouterIdProvider;
 import org.iris_events.router.service.WebsocketRegistry;
@@ -11,8 +9,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  * @author Tomaz Cerar
@@ -54,8 +50,6 @@ public abstract class AbstractRabbitMqConsumer extends BaseConsumer {
         log.debug("Got message from backend. Looking for websocket session to forward it.");
         final String router = message.routerId();
 
-        final String correlationId = message.correlationId();
-
         final String messageBody = message.body().copy().toString(StandardCharsets.UTF_8);
         if (router != null) {
             if (!routerId.equals(router)) {
@@ -69,7 +63,9 @@ public abstract class AbstractRabbitMqConsumer extends BaseConsumer {
             log.info("Message source: {} body: {}", currentServiceId, messageBody);
         }
 
-        if (requestRegistry.isRequestValid(correlationId)) {
+        final String correlationId = message.correlationId();
+        final String userId = message.userId();
+        if (requestRegistry.isRequestValid(correlationId, userId)) {
             requestRegistry.publishResponse(getSocketMessageType(), message);
         } else {
             // TODO: consider introducing custom header for subscription messages and re-enabling this check
