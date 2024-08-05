@@ -30,6 +30,9 @@ public record AmqpMessage(Buffer body, BasicProperties properties, String eventT
     public String originServiceId() {
         return getStringHeader(properties, ORIGIN_SERVICE_ID);
     }
+    public String originEventType() {
+        return getStringHeader(properties, ORIGIN_EVENT_TYPE);
+    }
 
     public String routerId() {
         return getStringHeader(properties, ROUTER);
