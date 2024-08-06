@@ -137,7 +137,7 @@ public class SocketV1 {
         if (userSession != null) {
             userSession.close(reason);
             final var userId = userSession.getUserId();
-            final var sessionClosed = new SessionClosed(sessionId, userId);
+            final var sessionClosed = new SessionClosed(userId, sessionId);
             backendService.sendInternalEvent(userSession, null, sessionClosed);
         }
         MDC.remove(MDCProperties.SESSION_ID);
