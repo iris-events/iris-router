@@ -58,8 +58,10 @@ public class WSResponseHandler extends DefaultResponseHandler {
         }
         UserSession session = websocketRegistry.getSession(sessionId);
         // assert session != null;
-        if (session == null && !nonRpcEvents.contains(message.eventType())) {
-            LOGGER.warn("Could not find session on this router message: {}", BackendRequest.sanitizeBody(message.body()));
+        if (session == null) {
+            if (!nonRpcEvents.contains(message.eventType())) {
+                LOGGER.warn("Could not find session on this router message: {}", BackendRequest.sanitizeBody(message.body()));
+            }
             return;
         }
         session.sendMessage(message);
