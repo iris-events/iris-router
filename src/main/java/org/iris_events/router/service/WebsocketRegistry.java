@@ -42,11 +42,11 @@ public class WebsocketRegistry {
 
     public WebsocketRegistry(RequestRegistry requestRegistry, ObjectMapper objectMapper, RouterConfig config) {
         this.requestRegistry = requestRegistry;
-        this.responseHandler = new WSResponseHandler(this, objectMapper);
         this.objectMapper = objectMapper;
         this.nonRpcEvents = new ArrayList<>(config.nonRpcEvents());
         LOGGER.info("non rpc requests: {}", nonRpcEvents);
         this.nonRpcEvents.addAll(NON_RPC_DATATYPES);
+        this.responseHandler = new WSResponseHandler(this, objectMapper, nonRpcEvents);
     }
 
     public UserSession startSession(Session session, Map<String, List<String>> headers) {

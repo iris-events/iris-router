@@ -1,12 +1,11 @@
 package org.iris_events.router.model;
 
+import java.util.List;
 import java.util.Set;
 
-import org.iris_events.router.consumer.BaseConsumer;
 import org.iris_events.router.service.WebsocketRegistry;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.slf4j.MDC;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -18,10 +17,12 @@ public class WSResponseHandler extends DefaultResponseHandler {
 
     private final WebsocketRegistry websocketRegistry;
     protected final ObjectMapper objectMapper;
+    private final List<String> nonRpcEvents;
 
-    public WSResponseHandler(WebsocketRegistry websocketRegistry, ObjectMapper objectMapper) {
+    public WSResponseHandler(WebsocketRegistry websocketRegistry, ObjectMapper objectMapper, List<String> nonRpcEvents) {
         this.websocketRegistry = websocketRegistry;
         this.objectMapper = objectMapper;
+        this.nonRpcEvents = nonRpcEvents;
     }
 
     @Override
@@ -43,7 +44,6 @@ public class WSResponseHandler extends DefaultResponseHandler {
     }
 
 
-
     @Override
     protected void onFailure(final AmqpMessage message) {
         // always send error message only to current active session
@@ -57,11 +57,9 @@ public class WSResponseHandler extends DefaultResponseHandler {
             return;
         }
         UserSession session = websocketRegistry.getSession(sessionId);
-        //assert session != null;
-        if (session == null) {
-            if (LOGGER.isTraceEnabled()) {
-                LOGGER.warn("Could not find session on this router message: {}", BackendRequest.sanitizeBody(message.body()));
-            }
+        // assert session != null;
+        if (session == null && !nonRpcEvents.contains(message.eventType())) {
+            LOGGER.warn("Could not find session on this router message: {}", BackendRequest.sanitizeBody(message.body()));
             return;
         }
         session.sendMessage(message);
