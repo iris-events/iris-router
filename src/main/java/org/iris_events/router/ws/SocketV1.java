@@ -188,8 +188,8 @@ public class SocketV1 {
             }
 
             MDC.put(MDCProperties.EVENT_TYPE, msgFromClient.event());
-            //log.info("Handling websocket client message.");
             final var messageHandler = getMessageHandler(msgFromClient.event());
+            log.debug("Handling websocket client message. event_type: {}", msgFromClient.event());
             messageHandler.handle(userSession, msgFromClient);
         } catch (Exception e) {
             log.error("Could not handle websocket client message {}", e.getMessage());
