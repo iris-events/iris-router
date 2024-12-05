@@ -95,10 +95,12 @@ public class SocketV1 {
     @OnOpen
     public void onOpen(Session session, EndpointConfig conf) {
         try {
-            final var irisSessionId = (String) conf.getUserProperties().get(IRIS_SESSION_ID_HEADER);
+            //final var irisSessionId = (String) conf.getUserProperties().get(IRIS_SESSION_ID_HEADER);
+            // todo session id should be generated while doing handshake as it is returned as header on upgrade,
+            //  but there is no reliable way to share state between ws configurator and endpoint, for now we are generating it here,
+            //  which will break mdc session id tracking between clients end backend, but better than having same session id for multiple web socket sessions.
+            final var irisSessionId = UUID.randomUUID().toString();
             MDC.put(MDCProperties.SESSION_ID, irisSessionId);
-
-
 
             Map<String, List<String>> headers = Optional
                     .ofNullable((Map<String, List<String>>) conf.getUserProperties().remove("headers"))
