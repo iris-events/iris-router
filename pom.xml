@@ -9,7 +9,7 @@
     </parent>
     <groupId>org.iris-events</groupId>
     <artifactId>iris-router</artifactId>
-    <version>3.1.6</version>
+    <version>3.1.7-SNAPSHOT</version>
     <scm>
         <connection>scm:git:git@github.com:iris-events/iris-router.git</connection>
         <developerConnection>scm:git:git@github.com:iris-events/iris-router.git</developerConnection>
