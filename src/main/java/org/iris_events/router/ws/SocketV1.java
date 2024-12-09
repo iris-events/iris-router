@@ -2,12 +2,7 @@ package org.iris_events.router.ws;
 
 import java.io.IOException;
 import java.security.NoSuchAlgorithmException;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
 
 import io.quarkus.logging.Log;
 import jakarta.annotation.PostConstruct;
@@ -101,10 +96,12 @@ public class SocketV1 {
             //  which will break mdc session id tracking between clients end backend, but better than having same session id for multiple web socket sessions.
             final var irisSessionId = UUID.randomUUID().toString();
             MDC.put(MDCProperties.SESSION_ID, irisSessionId);
+            session.getUserProperties().put(IRIS_SESSION_ID_HEADER, irisSessionId);
 
             Map<String, List<String>> headers = Optional
-                    .ofNullable((Map<String, List<String>>) conf.getUserProperties().remove("headers"))
-                    .orElse(Collections.emptyMap());
+                    .ofNullable(new HashMap<>((Map<String, List<String>>) conf.getUserProperties().remove("headers")))
+                    .orElse(new HashMap<>());
+            headers.put(IRIS_SESSION_ID_HEADER, List.of(irisSessionId));
 
             headers.forEach((k, v) -> MDC.put("header."+k, v.toString()));
 
@@ -121,7 +118,6 @@ public class SocketV1 {
 
 
             var userSession = websocketRegistry.startSession(session, headers);
-            conf.getUserProperties().put("user-session", userSession);
 
         } finally {
             MDC.clear();
